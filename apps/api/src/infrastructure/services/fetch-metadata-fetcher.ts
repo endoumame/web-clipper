@@ -3,6 +3,16 @@ import type { MetadataFetcher, ArticleMetadata } from "../../domain/ports/mod.js
 import type { ArticleUrl } from "../../domain/values/mod.js";
 import type { DomainError } from "../../domain/errors.js";
 
+const decodeHtmlEntities = (text: string): string =>
+  text
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&#x27;/g, "'")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)));
+
 const extractMetaContent = (html: string, property: string): string | null => {
   const patterns = [
     new RegExp(`<meta[^>]+(?:property|name)=["']${property}["'][^>]+content=["']([^"']*)["']`, "i"),
@@ -10,7 +20,7 @@ const extractMetaContent = (html: string, property: string): string | null => {
   ];
   for (const pattern of patterns) {
     const match = html.match(pattern);
-    if (match?.[1]) return match[1];
+    if (match?.[1]) return decodeHtmlEntities(match[1]);
   }
   return null;
 };
@@ -35,11 +45,20 @@ export const createFetchMetadataFetcher = (): MetadataFetcher => ({
         url,
         cause: error instanceof Error ? error.message : String(error),
       }),
-    ).map(
-      (html): ArticleMetadata => ({
+    ).map((html): ArticleMetadata => {
+      const rawOgImage = extractMetaContent(html, "og:image");
+      let ogImageUrl: string | null = null;
+      if (rawOgImage) {
+        try {
+          ogImageUrl = new URL(rawOgImage, url).href;
+        } catch {
+          ogImageUrl = rawOgImage;
+        }
+      }
+      return {
         title: extractMetaContent(html, "og:title") ?? extractTitle(html) ?? "Untitled",
         description: extractMetaContent(html, "og:description"),
-        ogImageUrl: extractMetaContent(html, "og:image"),
-      }),
-    ),
+        ogImageUrl,
+      };
+    }),
 });
