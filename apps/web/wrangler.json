@@ -1,10 +1,17 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "web-clipper-web",
+  "main": "worker.ts",
   "compatibility_date": "2025-12-01",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": "./dist",
     "not_found_handling": "single-page-application"
-  }
+  },
+  "services": [
+    {
+      "binding": "API",
+      "service": "web-clipper-api"
+    }
+  ]
 }
