@@ -3,3 +3,7 @@ export { updateArticle } from "./update-article.js";
 export { deleteArticle } from "./delete-article.js";
 export { createTag } from "./create-tag.js";
 export { deleteTag } from "./delete-tag.js";
+export { setupUser } from "./setup-user.js";
+export { login } from "./login.js";
+export { logout } from "./logout.js";
+export { githubOAuthCallback } from "./github-oauth-callback.js";

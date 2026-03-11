@@ -8,12 +8,20 @@ export const domainErrorToStatus = (error: DomainError): number => {
     case "ARTICLE_ALREADY_EXISTS":
     case "TAG_ALREADY_EXISTS":
       return 409;
+    case "SETUP_ALREADY_COMPLETED":
+      return 409;
     case "INVALID_URL":
     case "INVALID_TAG_NAME":
     case "INVALID_ARTICLE_ID":
       return 400;
+    case "INVALID_CREDENTIALS":
+    case "SESSION_NOT_FOUND":
+    case "SESSION_EXPIRED":
+      return 401;
     case "METADATA_FETCH_FAILED":
       return 502;
+    case "OAUTH_ERROR":
+      return 401;
     case "STORAGE_ERROR":
       return 500;
   }

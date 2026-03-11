@@ -11,4 +11,9 @@ export type DomainError =
       readonly url: string;
       readonly cause: string;
     }
-  | { readonly type: "STORAGE_ERROR"; readonly cause: unknown };
+  | { readonly type: "STORAGE_ERROR"; readonly cause: unknown }
+  | { readonly type: "INVALID_CREDENTIALS"; readonly message: string }
+  | { readonly type: "SESSION_NOT_FOUND"; readonly message: string }
+  | { readonly type: "SESSION_EXPIRED"; readonly message: string }
+  | { readonly type: "SETUP_ALREADY_COMPLETED"; readonly message: string }
+  | { readonly type: "OAUTH_ERROR"; readonly message: string };
