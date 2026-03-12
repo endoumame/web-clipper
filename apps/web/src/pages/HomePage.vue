@@ -210,7 +210,7 @@ onMounted(() => {
     <!-- Loading skeleton -->
     <div v-if="isLoading" class="space-y-4">
       <div v-for="n in 3" :key="n" class="card-base overflow-hidden">
-        <div class="skeleton w-full aspect-video rounded-none" />
+        <div class="skeleton w-full h-48 rounded-none" />
         <div class="p-5 space-y-3">
           <div class="skeleton h-5 w-3/4 rounded" />
           <div class="skeleton h-3 w-1/3 rounded" />
@@ -245,7 +245,7 @@ onMounted(() => {
           v-if="article.ogImageUrl"
           :src="article.ogImageUrl"
           :alt="article.title"
-          class="w-full aspect-video object-contain bg-surface-2"
+          class="h-auto w-full max-h-72 object-cover"
           loading="lazy"
         />
 
