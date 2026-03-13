@@ -208,8 +208,8 @@ onMounted(() => {
     </div>
 
     <!-- Loading skeleton -->
-    <div v-if="isLoading" class="space-y-4">
-      <div v-for="n in 3" :key="n" class="card-base overflow-hidden">
+    <div v-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div v-for="n in 6" :key="n" class="card-base overflow-hidden">
         <div class="skeleton w-full h-48 rounded-none" />
         <div class="p-5 space-y-3">
           <div class="skeleton h-5 w-3/4 rounded" />
@@ -233,7 +233,7 @@ onMounted(() => {
     </div>
 
     <!-- Article cards -->
-    <div v-else class="space-y-4">
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <RouterLink
         v-for="article in articles"
         :key="article.id"
