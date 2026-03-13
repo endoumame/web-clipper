@@ -86,6 +86,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Build dependencies
+        run: pnpm --filter @web-clipper/shared --filter @web-clipper/api build
+
       - name: Deploy API
         run: pnpm --filter @web-clipper/api exec wrangler deploy
         env:
