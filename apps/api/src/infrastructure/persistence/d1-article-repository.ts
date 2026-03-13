@@ -1,6 +1,7 @@
 import { ResultAsync } from "neverthrow";
 import { eq } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
+import { nanoid } from "nanoid";
 import type { ArticleRepository } from "../../domain/ports/mod.js";
 import type { Article } from "../../domain/entities/mod.js";
 import type { ArticleId, ArticleUrl } from "../../domain/values/mod.js";
@@ -60,11 +61,16 @@ export const createD1ArticleRepository = (db: DrizzleD1Database): ArticleReposit
 
         if (article.tags.length > 0) {
           for (const tagName of article.tags) {
-            const existingTag = await db.select().from(tags).where(eq(tags.name, tagName)).get();
-            if (existingTag) {
+            let tag = await db.select().from(tags).where(eq(tags.name, tagName)).get();
+            if (!tag) {
+              const now = new Date();
+              await db.insert(tags).values({ id: nanoid(), name: tagName, createdAt: now });
+              tag = await db.select().from(tags).where(eq(tags.name, tagName)).get();
+            }
+            if (tag) {
               await db.insert(articleTags).values({
                 articleId: article.id,
-                tagId: existingTag.id,
+                tagId: tag.id,
               });
             }
           }
