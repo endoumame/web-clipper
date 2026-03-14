@@ -1,3 +1,4 @@
+import { nextTick } from "vue";
 import { createRouter, createWebHistory } from "vue-router";
 
 const router = createRouter({
@@ -58,6 +59,28 @@ router.beforeEach(async (to) => {
   if (auth.isAuthenticated.value && to.path === "/login") {
     return "/";
   }
+});
+
+// View Transitions API
+let resolveTransition: (() => void) | null = null;
+
+router.beforeResolve(async () => {
+  if (!document.startViewTransition) return;
+
+  return new Promise<void>((resolve) => {
+    document.startViewTransition(() => {
+      resolve();
+      return new Promise<void>((r) => {
+        resolveTransition = r;
+      });
+    });
+  });
+});
+
+router.afterEach(async () => {
+  await nextTick();
+  resolveTransition?.();
+  resolveTransition = null;
 });
 
 export default router;

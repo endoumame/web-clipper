@@ -2,11 +2,13 @@
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useApi } from "@/composables/useApi";
+import { useViewTransition } from "@/composables/useViewTransition";
 import type { Article } from "@/types/article";
 
 const route = useRoute();
 const router = useRouter();
 const api = useApi();
+const { clearTransition } = useViewTransition();
 
 const articleId = computed(() => route.params.id as string);
 
@@ -184,6 +186,7 @@ async function deleteArticle() {
 }
 
 onMounted(() => {
+  clearTransition();
   fetchArticle();
   fetchAllTags();
 });
@@ -242,13 +245,14 @@ onMounted(() => {
       </button>
 
       <!-- メインカード -->
-      <div class="card-base overflow-hidden">
+      <div class="card-base overflow-hidden" style="view-transition-name: article-card">
         <!-- OG画像 -->
         <img
           v-if="article.ogImageUrl"
           :src="article.ogImageUrl"
           :alt="article.title"
           class="w-full max-h-72 object-contain bg-black/20"
+          style="view-transition-name: article-image"
         />
 
         <div class="p-6">
@@ -266,7 +270,10 @@ onMounted(() => {
           </div>
 
           <!-- タイトル -->
-          <h1 class="font-display text-2xl font-bold text-foreground leading-tight">
+          <h1
+            class="font-display text-2xl font-bold text-foreground leading-tight"
+            style="view-transition-name: article-title"
+          >
             {{ article.title }}
           </h1>
 

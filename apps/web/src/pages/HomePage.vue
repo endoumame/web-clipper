@@ -2,9 +2,11 @@
 import { ref, computed, watch, onMounted } from "vue";
 import { RouterLink } from "vue-router";
 import { useApi } from "@/composables/useApi";
+import { useViewTransition } from "@/composables/useViewTransition";
 import type { Article, Tag } from "@/types/article";
 
 const api = useApi();
+const { transitioningArticleId, startTransition } = useViewTransition();
 
 // --- State ---
 const searchQuery = ref("");
@@ -234,6 +236,8 @@ onMounted(() => {
         :key="article.id"
         :to="`/articles/${article.id}`"
         class="block card-hover overflow-hidden no-underline"
+        :style="article.id === transitioningArticleId ? { viewTransitionName: 'article-card' } : {}"
+        @click="startTransition(article.id)"
       >
         <!-- OG Image -->
         <img
@@ -241,6 +245,7 @@ onMounted(() => {
           :src="article.ogImageUrl"
           :alt="article.title"
           class="w-full max-h-72 object-contain bg-black/20"
+          :style="article.id === transitioningArticleId ? { viewTransitionName: 'article-image' } : {}"
           loading="lazy"
         />
 
@@ -248,7 +253,10 @@ onMounted(() => {
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0 flex-1">
               <!-- Title -->
-              <h3 class="text-foreground font-semibold text-base font-body line-clamp-2">
+              <h3
+                class="text-foreground font-semibold text-base font-body line-clamp-2"
+                :style="article.id === transitioningArticleId ? { viewTransitionName: 'article-title' } : {}"
+              >
                 {{ article.title }}
               </h3>
 

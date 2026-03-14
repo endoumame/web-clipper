@@ -61,28 +61,27 @@ async function handleLogout() {
     </header>
 
     <main :class="auth.isAuthenticated.value ? 'max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8' : ''">
-      <Transition name="page" mode="out-in">
-        <RouterView />
-      </Transition>
+      <RouterView />
     </main>
   </div>
 </template>
 
-<style scoped>
-.page-enter-active,
-.page-leave-active {
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
+<style>
+/* View Transitions API: デフォルトのクロスフェード */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.3s;
+  animation-timing-function: ease;
 }
 
-.page-enter-from {
-  opacity: 0;
-  transform: translateY(8px);
-}
-
-.page-leave-to {
-  opacity: 0;
-  transform: translateY(-8px);
+/* 共有要素の遷移 */
+::view-transition-old(article-card),
+::view-transition-new(article-card),
+::view-transition-old(article-image),
+::view-transition-new(article-image),
+::view-transition-old(article-title),
+::view-transition-new(article-title) {
+  animation-duration: 0.35s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 </style>
