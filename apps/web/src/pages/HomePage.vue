@@ -237,7 +237,14 @@ onMounted(() => {
         :to="`/articles/${article.id}`"
         class="block card-hover overflow-hidden no-underline"
         :style="article.id === transitioningArticleId ? { viewTransitionName: 'article-card' } : {}"
-        @click="startTransition(article.id)"
+        @click="
+          startTransition({
+            id: article.id,
+            title: article.title,
+            ogImageUrl: article.ogImageUrl,
+            source: article.source,
+          })
+        "
       >
         <!-- OG Image -->
         <img
