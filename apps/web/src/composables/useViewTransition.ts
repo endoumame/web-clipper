@@ -9,6 +9,7 @@ export interface TransitionArticle {
 
 const transitioningArticleId = ref<string | null>(null);
 const transitionArticle = ref<TransitionArticle | null>(null);
+let savedScrollY = 0;
 
 export function useViewTransition() {
   function startTransition(article: TransitionArticle) {
@@ -16,9 +17,18 @@ export function useViewTransition() {
     transitionArticle.value = article;
   }
 
+  function saveScrollY(y: number) {
+    savedScrollY = y;
+  }
+
   function clearTransition() {
     transitioningArticleId.value = null;
     transitionArticle.value = null;
+  }
+
+  function restoreScroll() {
+    window.scrollTo(0, savedScrollY);
+    savedScrollY = 0;
   }
 
   return {
@@ -26,5 +36,7 @@ export function useViewTransition() {
     transitionArticle,
     startTransition,
     clearTransition,
+    saveScrollY,
+    restoreScroll,
   };
 }

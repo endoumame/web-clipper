@@ -83,7 +83,9 @@ router.beforeResolve(async () => {
 
     transition.finished.then(async () => {
       const { useViewTransition } = await import("@/composables/useViewTransition");
-      useViewTransition().clearTransition();
+      const vt = useViewTransition();
+      vt.restoreScroll();
+      vt.clearTransition();
     });
   });
 });
