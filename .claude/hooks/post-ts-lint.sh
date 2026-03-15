@@ -9,9 +9,9 @@ case "$file" in
   *) exit 0 ;;
 esac
 
-npx oxfmt "$file" >/dev/null 2>&1 || true
-npx oxlint --fix "$file" >/dev/null 2>&1 || true
-diag="$(npx oxlint "$file" 2>&1 | head -20)"
+pnpm oxfmt "$file" >/dev/null 2>&1 || true
+pnpm oxlint --fix "$file" >/dev/null 2>&1 || true
+diag="$(pnpm oxlint "$file" 2>&1 | head -20)"
 
 if [ -n "$diag" ]; then
   jq -Rn --arg msg "$diag" '{
