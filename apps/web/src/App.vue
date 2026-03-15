@@ -77,12 +77,4 @@ async function handleLogout() {
   animation-duration: 0.25s;
   animation-timing-function: ease-out;
 }
-
-/* カード要素ごとの独立トランジション: --tag CSS変数を持つ要素に自動付与 */
-@media (prefers-reduced-motion: no-preference) {
-  [style*="--tag"] {
-    view-transition-name: var(--tag);
-    contain: paint;
-  }
-}
 </style>
