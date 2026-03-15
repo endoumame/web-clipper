@@ -70,8 +70,11 @@ router.beforeEach(async (to) => {
 // View Transitions API
 let resolveTransition: (() => void) | null = null;
 
-router.beforeResolve(async () => {
+router.beforeResolve(async (to, from) => {
   if (!document.startViewTransition) return;
+
+  const isBackToList =
+    to.path === "/" && from.path.startsWith("/articles/");
 
   return new Promise<void>((resolve) => {
     const transition = document.startViewTransition(() => {
@@ -84,7 +87,9 @@ router.beforeResolve(async () => {
     transition.finished.then(async () => {
       const { useViewTransition } = await import("@/composables/useViewTransition");
       const vt = useViewTransition();
-      vt.restoreScroll();
+      if (isBackToList) {
+        vt.restoreScroll();
+      }
       vt.clearTransition();
     });
   });
