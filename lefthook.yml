@@ -1,0 +1,8 @@
+pre-commit:
+  parallel: true
+  jobs:
+    - name: oxlint
+      run: pnpm lint
+
+    - name: typecheck
+      run: pnpm typecheck
