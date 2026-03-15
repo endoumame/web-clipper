@@ -250,6 +250,7 @@ onMounted(() => {
           :src="article.ogImageUrl"
           :alt="article.title"
           class="w-full max-h-72 object-contain bg-black/20"
+          :style="{ '--tag': `img-${article.id}` }"
           loading="lazy"
         />
 
@@ -257,7 +258,10 @@ onMounted(() => {
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0 flex-1">
               <!-- Title -->
-              <h3 class="text-foreground font-semibold text-base font-body line-clamp-2">
+              <h3
+                class="text-foreground font-semibold text-base font-body line-clamp-2"
+                :style="{ '--tag': `title-${article.id}` }"
+              >
                 {{ article.title }}
               </h3>
 
