@@ -9,7 +9,7 @@ const create = (input: string): Result<SessionId, DomainError> => {
   const parsed = SessionIdSchema.safeParse(input);
   if (!parsed.success) {
     return err({
-      type: "SESSION_NOT_FOUND" as const,
+      type: "INVALID_SESSION_ID" as const,
       message: parsed.error.message,
     });
   }

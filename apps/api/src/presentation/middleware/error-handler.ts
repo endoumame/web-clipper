@@ -13,6 +13,8 @@ export const domainErrorToStatus = (error: DomainError): number => {
     case "INVALID_URL":
     case "INVALID_TAG_NAME":
     case "INVALID_ARTICLE_ID":
+    case "INVALID_USER_ID":
+    case "INVALID_SESSION_ID":
       return 400;
     case "INVALID_CREDENTIALS":
     case "SESSION_NOT_FOUND":

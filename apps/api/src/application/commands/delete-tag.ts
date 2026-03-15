@@ -1,25 +1,16 @@
-import { ResultAsync } from "neverthrow";
-import { eq } from "drizzle-orm";
-import type { DrizzleD1Database } from "drizzle-orm/d1";
+import { err, type ResultAsync } from "neverthrow";
+import type { TagRepository } from "../../domain/ports/mod.js";
 import type { DomainError } from "../../domain/errors.js";
-import { tags } from "../../infrastructure/persistence/schema.js";
+
+type DeleteTagDeps = {
+  readonly tagRepo: TagRepository;
+};
 
 export const deleteTag =
-  (db: DrizzleD1Database) =>
+  (deps: DeleteTagDeps) =>
   (id: string): ResultAsync<void, DomainError> =>
-    ResultAsync.fromPromise(
-      (async () => {
-        const existing = await db.select().from(tags).where(eq(tags.id, id)).get();
-        if (!existing) {
-          const error: DomainError = { type: "TAG_NOT_FOUND", id };
-          throw error;
-        }
-        await db.delete(tags).where(eq(tags.id, id));
-      })(),
-      (error): DomainError => {
-        if (typeof error === "object" && error !== null && "type" in error) {
-          return error as DomainError;
-        }
-        return { type: "STORAGE_ERROR", cause: error };
-      },
-    );
+    deps.tagRepo
+      .findById(id)
+      .andThen((existing) =>
+        existing ? deps.tagRepo.deleteById(id) : err({ type: "TAG_NOT_FOUND" as const, id }),
+      );

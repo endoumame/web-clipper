@@ -13,7 +13,7 @@ import type { articles, users, sessions } from "./schema.js";
 type ArticleRow = InferSelectModel<typeof articles>;
 
 export const toDomain = (row: ArticleRow, tagNames: string[]): Article =>
-  ArticleEntity.create({
+  ArticleEntity.reconstruct({
     id: ArticleIdVO.schema.parse(row.id) as ArticleId,
     url: ArticleUrlVO.schema.parse(row.url) as ArticleUrl,
     title: row.title,

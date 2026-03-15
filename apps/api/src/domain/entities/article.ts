@@ -17,7 +17,29 @@ export type Article = {
   readonly updatedAt: Date;
 };
 
-const create = (params: Article): Article => ({
+type CreateParams = {
+  readonly id: ArticleId;
+  readonly url: ArticleUrl;
+  readonly title: string;
+  readonly description: string | null;
+  readonly source: Source;
+  readonly ogImageUrl: string | null;
+  readonly memo: string | null;
+  readonly tags: readonly TagName[];
+};
+
+const create = (params: CreateParams): Article => {
+  const now = new Date();
+  return {
+    ...params,
+    isRead: false,
+    tags: [...params.tags],
+    createdAt: now,
+    updatedAt: now,
+  };
+};
+
+const reconstruct = (params: Article): Article => ({
   ...params,
   tags: [...params.tags],
 });
@@ -48,6 +70,7 @@ const updateTags = (article: Article, tags: readonly TagName[]): Article => ({
 
 export const ArticleEntity = {
   create,
+  reconstruct,
   markAsRead,
   markAsUnread,
   updateMemo,

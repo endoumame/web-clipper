@@ -5,6 +5,7 @@ import type {
   UserRepository,
   SessionRepository,
   PasswordHasher,
+  TagRepository,
 } from "../domain/ports/mod.js";
 
 export type Deps = {
@@ -13,6 +14,7 @@ export type Deps = {
   readonly userRepo: UserRepository;
   readonly sessionRepo: SessionRepository;
   readonly passwordHasher: PasswordHasher;
+  readonly tagRepo: TagRepository;
   readonly db: DrizzleD1Database;
 };
 

@@ -16,4 +16,6 @@ export type DomainError =
   | { readonly type: "SESSION_NOT_FOUND"; readonly message: string }
   | { readonly type: "SESSION_EXPIRED"; readonly message: string }
   | { readonly type: "SETUP_ALREADY_COMPLETED"; readonly message: string }
-  | { readonly type: "OAUTH_ERROR"; readonly message: string };
+  | { readonly type: "OAUTH_ERROR"; readonly message: string }
+  | { readonly type: "INVALID_USER_ID"; readonly message: string }
+  | { readonly type: "INVALID_SESSION_ID"; readonly message: string };

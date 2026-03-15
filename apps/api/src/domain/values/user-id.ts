@@ -10,7 +10,7 @@ const create = (input: string): Result<UserId, DomainError> => {
   const parsed = UserIdSchema.safeParse(input);
   if (!parsed.success) {
     return err({
-      type: "INVALID_CREDENTIALS" as const,
+      type: "INVALID_USER_ID" as const,
       message: parsed.error.message,
     });
   }

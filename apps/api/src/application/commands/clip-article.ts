@@ -34,7 +34,6 @@ export const clipArticle =
         const tagsResult = TagNameVO.validateMany(input.tags);
         if (tagsResult.isErr()) return err(tagsResult.error);
 
-        const now = new Date();
         const article = ArticleEntity.create({
           id: ArticleIdVO.generate(),
           url,
@@ -43,10 +42,7 @@ export const clipArticle =
           source: SourceVO.fromUrl(input.url),
           ogImageUrl: metadata.ogImageUrl,
           memo: input.memo ?? null,
-          isRead: false,
           tags: tagsResult.value,
-          createdAt: now,
-          updatedAt: now,
         });
 
         return ok(article);
