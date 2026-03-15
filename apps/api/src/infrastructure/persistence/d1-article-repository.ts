@@ -1,5 +1,5 @@
 import { ResultAsync } from "neverthrow";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { nanoid } from "nanoid";
 import type { ArticleRepository } from "../../domain/ports/mod.js";
@@ -60,20 +60,30 @@ export const createD1ArticleRepository = (db: DrizzleD1Database): ArticleReposit
         await db.delete(articleTags).where(eq(articleTags.articleId, article.id));
 
         if (article.tags.length > 0) {
-          for (const tagName of article.tags) {
-            let tag = await db.select().from(tags).where(eq(tags.name, tagName)).get();
-            if (!tag) {
-              const now = new Date();
-              await db.insert(tags).values({ id: nanoid(), name: tagName, createdAt: now });
-              tag = await db.select().from(tags).where(eq(tags.name, tagName)).get();
-            }
-            if (tag) {
-              await db.insert(articleTags).values({
-                articleId: article.id,
-                tagId: tag.id,
-              });
-            }
+          const existingTags = await db
+            .select()
+            .from(tags)
+            .where(inArray(tags.name, article.tags))
+            .all();
+          const existingNames = new Set(existingTags.map((t) => t.name));
+          const missingNames = article.tags.filter((name) => !existingNames.has(name));
+
+          if (missingNames.length > 0) {
+            const now = new Date();
+            await db.insert(tags).values(
+              missingNames.map((name) => ({ id: nanoid(), name, createdAt: now })),
+            );
           }
+
+          const allTags = await db
+            .select()
+            .from(tags)
+            .where(inArray(tags.name, article.tags))
+            .all();
+
+          await db.insert(articleTags).values(
+            allTags.map((tag) => ({ articleId: article.id, tagId: tag.id })),
+          );
         }
 
         return article;

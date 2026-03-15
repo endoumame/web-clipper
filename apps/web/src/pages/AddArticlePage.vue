@@ -21,12 +21,7 @@ const showTagDropdown = ref(false);
 // URL validation
 const urlError = computed(() => {
   if (!url.value) return "";
-  try {
-    new URL(url.value);
-    return "";
-  } catch {
-    return "有効なURLを入力してください";
-  }
+  return URL.canParse(url.value) ? "" : "有効なURLを入力してください";
 });
 
 const isFormValid = computed(() => {
