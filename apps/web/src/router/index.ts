@@ -73,8 +73,7 @@ let resolveTransition: (() => void) | null = null;
 router.beforeResolve(async (to, from) => {
   if (!document.startViewTransition) return;
 
-  const isBackToList =
-    to.path === "/" && from.path.startsWith("/articles/");
+  const isBackToList = to.path === "/" && from.path.startsWith("/articles/");
 
   return new Promise<void>((resolve) => {
     const transition = document.startViewTransition(() => {
