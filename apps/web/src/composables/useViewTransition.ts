@@ -1,29 +1,12 @@
-import { ref } from "vue";
-
-export interface TransitionArticle {
-  id: string;
-  title: string;
-  ogImageUrl: string | null;
-  source: string;
-}
-
-const transitioningArticleId = ref<string | null>(null);
-const transitionArticle = ref<TransitionArticle | null>(null);
 let savedScrollY = 0;
 
 export function useViewTransition() {
-  function startTransition(article: TransitionArticle) {
-    transitioningArticleId.value = article.id;
-    transitionArticle.value = article;
-  }
-
   function saveScrollY(y: number) {
     savedScrollY = y;
   }
 
   function clearTransition() {
-    transitioningArticleId.value = null;
-    transitionArticle.value = null;
+    // no-op: kept for router compatibility
   }
 
   function restoreScroll() {
@@ -32,11 +15,8 @@ export function useViewTransition() {
   }
 
   return {
-    transitioningArticleId,
-    transitionArticle,
-    startTransition,
-    clearTransition,
     saveScrollY,
+    clearTransition,
     restoreScroll,
   };
 }
