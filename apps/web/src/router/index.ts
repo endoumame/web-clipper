@@ -83,8 +83,17 @@ router.beforeEach(async (to) => {
 // View Transitions API
 let resolveTransition: (() => void) | null = null;
 
-router.beforeResolve(async () => {
+router.beforeResolve(async (to, from) => {
   if (!document.startViewTransition) return;
+
+  // ブラウザバックで一覧に戻る場合、transitioningArticleIdを自動設定
+  // （goBack()経由なら既にstartTransition()でセット済み）
+  if (isBackToList(to.path, from.path) && !vt.transitioningArticleId.value) {
+    const articleId = from.params.id as string;
+    if (articleId) {
+      vt.transitioningArticleId.value = articleId;
+    }
+  }
 
   return new Promise<void>((resolve) => {
     const transition = document.startViewTransition(() => {
