@@ -257,7 +257,9 @@ onMounted(() => {
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0 flex-1">
               <!-- Title -->
-              <h3 class="text-foreground font-semibold text-base font-body line-clamp-2">
+              <h3
+                class="text-foreground font-semibold text-base font-body line-clamp-2"
+              >
                 {{ article.title }}
               </h3>
 
