@@ -1,13 +1,26 @@
 import { nextTick } from "vue";
 import { createRouter, createWebHistory } from "vue-router";
+import { useViewTransition } from "@/composables/useViewTransition";
+
+const vt = useViewTransition();
+
+const isBackToList = (toPath: string, fromPath: string) =>
+  toPath === "/" && fromPath.startsWith("/articles/");
 
 const router = createRouter({
   history: createWebHistory(),
-  scrollBehavior(to, from) {
-    if (to.path === "/" && from.path.startsWith("/articles/")) {
+  scrollBehavior(to, from, savedPosition) {
+    if (!isBackToList(to.path, from.path)) {
+      return { top: 0 };
+    }
+
+    // VT対応ブラウザ: afterEach内でsnapshot前にスクロール復元するため、ここでは何もしない
+    if ("startViewTransition" in document) {
       return false;
     }
-    return { top: 0 };
+
+    // 非VTブラウザ: ブラウザバックならsavedPosition、プログラマティック遷移なら保存値を使う
+    return savedPosition ?? { top: vt.getSavedScrollY() };
   },
   routes: [
     {
@@ -73,8 +86,6 @@ let resolveTransition: (() => void) | null = null;
 router.beforeResolve(async (to, from) => {
   if (!document.startViewTransition) return;
 
-  const isBackToList = to.path === "/" && from.path.startsWith("/articles/");
-
   return new Promise<void>((resolve) => {
     const transition = document.startViewTransition(() => {
       resolve();
@@ -83,19 +94,22 @@ router.beforeResolve(async (to, from) => {
       });
     });
 
-    transition.finished.then(async () => {
-      const { useViewTransition } = await import("@/composables/useViewTransition");
-      const vt = useViewTransition();
-      if (isBackToList) {
-        vt.restoreScroll();
-      }
+    transition.finished.then(() => {
       vt.clearTransition();
+      vt.resetSavedScrollY();
     });
   });
 });
 
-router.afterEach(async () => {
+router.afterEach(async (to, from) => {
   await nextTick();
+
+  // VTブラウザ: resolveTransition() の前にスクロール位置を復元し、
+  // 新しいスナップショットに正しいスクロール位置を反映させる
+  if (resolveTransition && isBackToList(to.path, from.path)) {
+    vt.restoreScroll();
+  }
+
   resolveTransition?.();
   resolveTransition = null;
 });

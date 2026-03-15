@@ -26,8 +26,15 @@ export function useViewTransition() {
     transitionArticle.value = null;
   }
 
+  function getSavedScrollY(): number {
+    return savedScrollY;
+  }
+
   function restoreScroll() {
     window.scrollTo(0, savedScrollY);
+  }
+
+  function resetSavedScrollY() {
     savedScrollY = 0;
   }
 
@@ -37,6 +44,8 @@ export function useViewTransition() {
     startTransition,
     clearTransition,
     saveScrollY,
+    getSavedScrollY,
     restoreScroll,
+    resetSavedScrollY,
   };
 }
