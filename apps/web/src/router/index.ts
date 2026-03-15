@@ -83,7 +83,7 @@ router.beforeEach(async (to) => {
 // View Transitions API
 let resolveTransition: (() => void) | null = null;
 
-router.beforeResolve(async (to, from) => {
+router.beforeResolve(async () => {
   if (!document.startViewTransition) return;
 
   return new Promise<void>((resolve) => {
