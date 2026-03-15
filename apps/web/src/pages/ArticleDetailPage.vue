@@ -2,11 +2,13 @@
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useApi } from "@/composables/useApi";
+import { useViewTransition } from "@/composables/useViewTransition";
 import type { Article } from "@/types/article";
 
 const route = useRoute();
 const router = useRouter();
 const api = useApi();
+const { transitionArticle, startTransition, clearTransition } = useViewTransition();
 
 const articleId = computed(() => route.params.id as string);
 
@@ -168,6 +170,14 @@ async function addTag() {
 }
 
 function goBack() {
+  if (article.value) {
+    startTransition({
+      id: article.value.id,
+      title: article.value.title,
+      ogImageUrl: article.value.ogImageUrl,
+      source: article.value.source,
+    });
+  }
   router.push("/");
 }
 
@@ -195,8 +205,39 @@ onMounted(() => {
 
 <template>
   <div class="max-w-3xl mx-auto">
-    <!-- ローディング -->
-    <div v-if="loading" class="space-y-5 py-8">
+    <!-- ローディング（遷移データあり: プレビュー表示） -->
+    <div v-if="loading && transitionArticle" class="space-y-5 py-8">
+      <div class="skeleton h-5 w-24" />
+      <div class="card-base overflow-hidden">
+        <img
+          v-if="transitionArticle.ogImageUrl"
+          :src="transitionArticle.ogImageUrl"
+          :alt="transitionArticle.title"
+          class="w-full object-contain bg-black/20"
+          style="view-transition-name: article-image"
+        />
+        <div class="p-6 space-y-4">
+          <div class="flex gap-2">
+            <div class="skeleton h-6 w-20 rounded-full" />
+          </div>
+          <h1
+            class="font-display text-2xl font-bold text-foreground leading-tight"
+            style="view-transition-name: article-title"
+          >
+            {{ transitionArticle.title }}
+          </h1>
+          <div class="skeleton h-4 w-1/2" />
+          <div class="skeleton h-16 w-full" />
+        </div>
+      </div>
+      <div class="card-base p-5">
+        <div class="skeleton h-4 w-20 mb-3" />
+        <div class="skeleton h-10 w-full" />
+      </div>
+    </div>
+
+    <!-- ローディング（遷移データなし: スケルトン） -->
+    <div v-else-if="loading" class="space-y-5 py-8">
       <div class="skeleton h-5 w-24" />
       <div class="card-base overflow-hidden">
         <div class="skeleton h-52 rounded-none" />
@@ -253,6 +294,7 @@ onMounted(() => {
           :src="article.ogImageUrl"
           :alt="article.title"
           class="w-full object-contain bg-black/20"
+          style="view-transition-name: article-image"
         />
 
         <div class="p-6">
@@ -272,6 +314,7 @@ onMounted(() => {
           <!-- タイトル -->
           <h1
             class="font-display text-2xl font-bold text-foreground leading-tight"
+            style="view-transition-name: article-title"
           >
             {{ article.title }}
           </h1>

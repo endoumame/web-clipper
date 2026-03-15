@@ -8,7 +8,7 @@ import type { Article, Tag } from "@/types/article";
 defineOptions({ name: "HomePage" });
 
 const api = useApi();
-const { saveScrollY } = useViewTransition();
+const { transitioningArticleId, startTransition, saveScrollY } = useViewTransition();
 
 // --- State ---
 const searchQuery = ref("");
@@ -243,6 +243,14 @@ onMounted(() => {
         :key="article.id"
         :to="`/articles/${article.id}`"
         class="block card-hover overflow-hidden no-underline"
+        @click="
+          startTransition({
+            id: article.id,
+            title: article.title,
+            ogImageUrl: article.ogImageUrl,
+            source: article.source,
+          })
+        "
       >
         <!-- OG Image -->
         <img
@@ -250,6 +258,9 @@ onMounted(() => {
           :src="article.ogImageUrl"
           :alt="article.title"
           class="w-full max-h-72 object-contain bg-black/20"
+          :style="
+            article.id === transitioningArticleId ? { viewTransitionName: 'article-image' } : {}
+          "
           loading="lazy"
         />
 
@@ -259,6 +270,11 @@ onMounted(() => {
               <!-- Title -->
               <h3
                 class="text-foreground font-semibold text-base font-body line-clamp-2"
+                :style="
+                  article.id === transitioningArticleId
+                    ? { viewTransitionName: 'article-title' }
+                    : {}
+                "
               >
                 {{ article.title }}
               </h3>
