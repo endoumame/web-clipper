@@ -270,9 +270,7 @@ onMounted(() => {
           </div>
 
           <!-- タイトル -->
-          <h1
-            class="font-display text-2xl font-bold text-foreground leading-tight"
-          >
+          <h1 class="font-display text-2xl font-bold text-foreground leading-tight">
             {{ article.title }}
           </h1>
 
