@@ -48,6 +48,8 @@ export const login =
             id: SessionIdVO.generate(),
             userId: user.id,
           });
-          return deps.sessionRepo.save(session).map((savedSession) => ({ user, session: savedSession }));
+          return deps.sessionRepo
+            .save(session)
+            .map((savedSession) => ({ user, session: savedSession }));
         }),
       );

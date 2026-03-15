@@ -70,9 +70,9 @@ export const createD1ArticleRepository = (db: DrizzleD1Database): ArticleReposit
 
           if (missingNames.length > 0) {
             const now = new Date();
-            await db.insert(tags).values(
-              missingNames.map((name) => ({ id: nanoid(), name, createdAt: now })),
-            );
+            await db
+              .insert(tags)
+              .values(missingNames.map((name) => ({ id: nanoid(), name, createdAt: now })));
           }
 
           const allTags = await db
@@ -81,9 +81,9 @@ export const createD1ArticleRepository = (db: DrizzleD1Database): ArticleReposit
             .where(inArray(tags.name, article.tags))
             .all();
 
-          await db.insert(articleTags).values(
-            allTags.map((tag) => ({ articleId: article.id, tagId: tag.id })),
-          );
+          await db
+            .insert(articleTags)
+            .values(allTags.map((tag) => ({ articleId: article.id, tagId: tag.id })));
         }
 
         return article;
