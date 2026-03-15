@@ -213,7 +213,7 @@ onMounted(() => {
           v-if="transitionArticle.ogImageUrl"
           :src="transitionArticle.ogImageUrl"
           :alt="transitionArticle.title"
-          class="w-full max-h-72 object-cover"
+          class="w-full object-contain bg-black/20"
           style="view-transition-name: article-image"
         />
         <div class="p-6 space-y-4">
@@ -293,7 +293,7 @@ onMounted(() => {
           v-if="article.ogImageUrl"
           :src="article.ogImageUrl"
           :alt="article.title"
-          class="w-full max-h-72 object-cover"
+          class="w-full object-contain bg-black/20"
           style="view-transition-name: article-image"
         />
 
