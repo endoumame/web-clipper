@@ -31,9 +31,9 @@ export default defineConfig({
       "px-4 py-2 text-sm text-muted border border-border rounded-lg transition-all duration-200 hover:text-foreground hover:border-muted hover:bg-surface-2 font-body",
     "input-base":
       "w-full rounded-lg border border-border bg-surface-1 px-4 py-2.5 text-sm text-foreground placeholder:text-muted/60 focus:outline-none focus:border-accent/60 focus:ring-1 focus:ring-accent/30 transition-all duration-200 font-body",
-    "card-base": "rounded-xl border border-border bg-surface-1 transition-all duration-300",
+    "card-base": "rounded-xl border border-border bg-surface-1",
     "card-hover":
-      "rounded-xl border border-border bg-surface-1 transition-all duration-300 ease-out hover:border-accent/50 hover:shadow-[0_2px_24px_rgba(255,202,88,0.12),0_0_0_1px_rgba(255,202,88,0.15)] hover:-translate-y-0.5",
+      "rounded-xl border border-border bg-surface-1 transition-property-[border-color,box-shadow,transform] duration-300 ease-out hover:border-accent/50 hover:shadow-[0_2px_24px_rgba(255,202,88,0.12),0_0_0_1px_rgba(255,202,88,0.15)] hover:-translate-y-0.5",
     "badge-base":
       "inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-full font-body",
     "section-title": "text-sm font-medium text-muted uppercase tracking-wider font-body",
