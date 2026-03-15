@@ -257,7 +257,7 @@ onMounted(() => {
           v-if="article.ogImageUrl"
           :src="article.ogImageUrl"
           :alt="article.title"
-          class="w-full max-h-72 object-contain bg-black/20"
+          class="w-full max-h-72 object-contain bg-black/20 rounded-t-xl"
           :style="
             article.id === transitioningArticleId ? { viewTransitionName: 'article-image' } : {}
           "
