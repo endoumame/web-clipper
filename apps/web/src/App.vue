@@ -71,21 +71,25 @@ async function handleLogout() {
 </template>
 
 <style>
-/* View Transitions API: デフォルトのクロスフェード */
+/* View Transitions API: ルート要素のクロスフェードを短く・控えめに */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 0.3s;
-  animation-timing-function: ease;
+  animation-duration: 0.25s;
+  animation-timing-function: ease-out;
 }
 
-/* 共有要素の遷移 */
-::view-transition-old(article-card),
-::view-transition-new(article-card),
+/* 共有要素の遷移: image と title のみ */
 ::view-transition-old(article-image),
 ::view-transition-new(article-image),
 ::view-transition-old(article-title),
 ::view-transition-new(article-title) {
-  animation-duration: 0.35s;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-duration: 0.4s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 共有要素遷移中、ルートのクロスフェードと干渉しないようにする */
+::view-transition-group(article-image),
+::view-transition-group(article-title) {
+  z-index: 10;
 }
 </style>

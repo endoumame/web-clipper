@@ -243,7 +243,6 @@ onMounted(() => {
         :key="article.id"
         :to="`/articles/${article.id}`"
         class="block card-hover overflow-hidden no-underline"
-        :style="article.id === transitioningArticleId ? { viewTransitionName: 'article-card' } : {}"
         @click="
           startTransition({
             id: article.id,

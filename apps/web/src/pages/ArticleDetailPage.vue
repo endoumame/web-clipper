@@ -208,7 +208,7 @@ onMounted(() => {
     <!-- ローディング（遷移データあり: プレビュー表示） -->
     <div v-if="loading && transitionArticle" class="space-y-5 py-8">
       <div class="skeleton h-5 w-24" />
-      <div class="card-base overflow-hidden" style="view-transition-name: article-card">
+      <div class="card-base overflow-hidden">
         <img
           v-if="transitionArticle.ogImageUrl"
           :src="transitionArticle.ogImageUrl"
@@ -287,7 +287,7 @@ onMounted(() => {
       </button>
 
       <!-- メインカード -->
-      <div class="card-base overflow-hidden" style="view-transition-name: article-card">
+      <div class="card-base overflow-hidden">
         <!-- OG画像 -->
         <img
           v-if="article.ogImageUrl"
