@@ -368,7 +368,7 @@ onMounted(() => {
           <span class="section-title">閲覧状態</span>
           <button
             :disabled="togglingRead"
-            class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 font-body disabled:opacity-50"
+            class="px-4 py-2 text-sm font-medium rounded-lg transition-property-[color,background-color,border-color] duration-200 font-body disabled:opacity-50"
             :class="
               article.isRead
                 ? 'bg-accent/10 text-accent border border-accent/20 hover:bg-accent/20'
@@ -481,7 +481,7 @@ onMounted(() => {
           </div>
           <button
             :disabled="deleting"
-            class="bg-error/10 text-error border border-error/20 hover:bg-error/20 px-4 py-2 text-sm rounded-lg font-medium transition-all duration-200 font-body disabled:opacity-50"
+            class="bg-error/10 text-error border border-error/20 hover:bg-error/20 px-4 py-2 text-sm rounded-lg font-medium transition-property-[color,background-color,border-color] duration-200 font-body disabled:opacity-50"
             @click="deleteArticle"
           >
             {{ deleting ? "削除中..." : "削除" }}

@@ -166,7 +166,7 @@ onMounted(() => {
         v-model="searchQuery"
         type="text"
         placeholder="記事を検索..."
-        class="input-base w-full py-3 px-5 pl-12 text-base font-body focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all duration-200"
+        class="input-base w-full py-3 px-5 pl-12 text-base font-body focus:ring-2 focus:ring-accent/40 focus:border-accent"
       />
     </div>
 
@@ -177,7 +177,7 @@ onMounted(() => {
         <button
           v-for="f in sourceFilters"
           :key="f.value"
-          class="px-4 py-2 text-sm rounded-full border transition-all duration-200 font-body"
+          class="px-4 py-2 text-sm rounded-full border transition-property-[color,background-color,border-color] duration-200 font-body"
           :class="
             selectedSource === f.value
               ? 'bg-accent text-surface-0 border-accent shadow-sm shadow-accent/20'
@@ -329,7 +329,7 @@ onMounted(() => {
     <!-- Load more -->
     <div v-if="nextCursor && !isLoading" class="flex justify-center pt-2 pb-4">
       <button
-        class="btn-ghost px-6 py-2 text-sm font-medium font-body rounded-lg border border-accent/40 text-accent hover:bg-accent/10 hover:border-accent transition-all duration-200 disabled:opacity-50"
+        class="btn-ghost px-6 py-2 text-sm font-medium font-body rounded-lg border border-accent/40 text-accent hover:bg-accent/10 hover:border-accent disabled:opacity-50"
         :disabled="isLoadingMore"
         @click="loadMore"
       >

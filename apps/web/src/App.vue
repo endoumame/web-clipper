@@ -94,4 +94,10 @@ async function handleLogout() {
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   z-index: 10;
 }
+
+/* View Transition 中は CSS transition を無効化して
+   border-radius 等が意図せずアニメーションするのを防止 */
+:root:active-view-transition * {
+  transition: none !important;
+}
 </style>
