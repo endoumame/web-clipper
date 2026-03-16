@@ -71,7 +71,7 @@ router.beforeEach(async (to) => {
 
   // Not authenticated and route requires auth → /login
   if (!auth.isAuthenticated.value && to.meta.requiresAuth !== false) {
-    return "/login";
+    return { path: "/login", query: { redirect: to.fullPath } };
   }
 
   // Authenticated but on /login → redirect home

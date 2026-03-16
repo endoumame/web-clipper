@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useAuth } from "@/composables/useAuth";
 
 const router = useRouter();
+const route = useRoute();
 const auth = useAuth();
 
 const username = ref("");
@@ -20,7 +21,7 @@ async function handleSubmit() {
   try {
     const success = await auth.login(username.value, password.value);
     if (success) {
-      router.push("/");
+      router.push((route.query.redirect as string) || "/");
     } else {
       errorMessage.value = "ユーザー名またはパスワードが正しくありません。";
     }

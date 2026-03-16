@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useApi } from "@/composables/useApi";
 
 const router = useRouter();
+const route = useRoute();
 const api = useApi();
 
 // Form state
@@ -38,6 +39,29 @@ const filteredTags = computed(() => {
 
 // Fetch existing tags
 onMounted(async () => {
+  // Share Target: read query parameters
+  const sharedUrl = route.query.url as string | undefined;
+  const sharedText = route.query.text as string | undefined;
+  const sharedTitle = route.query.title as string | undefined;
+
+  if (sharedUrl) {
+    url.value = sharedUrl;
+  } else if (sharedText) {
+    const extracted = sharedText.match(/https?:\/\/\S+/);
+    if (extracted) {
+      url.value = extracted[0];
+    }
+  }
+
+  if (sharedTitle) {
+    memo.value = sharedTitle;
+  }
+
+  // Clean up query string
+  if (route.query.url || route.query.text || route.query.title) {
+    router.replace({ path: route.path });
+  }
+
   try {
     const res = await api.api.tags.$get();
     const data = await res.json();
