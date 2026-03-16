@@ -3,7 +3,7 @@ import { ref, computed, watch, onMounted, onDeactivated } from "vue";
 import { RouterLink } from "vue-router";
 import { useApi } from "@/composables/useApi";
 import { useViewTransition } from "@/composables/useViewTransition";
-import type { Article, Tag } from "@/types/article";
+import type { Article } from "@/types/article";
 
 defineOptions({ name: "HomePage" });
 
@@ -14,11 +14,8 @@ const { transitioningArticleId, startTransition, saveScrollY } = useViewTransiti
 const searchQuery = ref("");
 const debouncedQuery = ref("");
 const selectedSource = ref<string>("");
-const selectedTagId = ref<string>("");
-
 const articles = ref<Article[]>([]);
 const nextCursor = ref<string | null>(null);
-const tags = ref<Tag[]>([]);
 const isLoading = ref(false);
 const isLoadingMore = ref(false);
 
@@ -63,7 +60,6 @@ async function fetchArticles(cursor?: string) {
   const query: Record<string, string> = {};
   if (debouncedQuery.value) query.q = debouncedQuery.value;
   if (selectedSource.value) query.source = selectedSource.value;
-  if (selectedTagId.value) query.tagId = selectedTagId.value;
   if (cursor) query.cursor = cursor;
 
   const res = await api.api.articles.$get({ query });
@@ -94,15 +90,8 @@ async function loadMore() {
   }
 }
 
-// --- Fetch tags ---
-async function fetchTags() {
-  const res = await api.api.tags.$get();
-  const data = await res.json();
-  tags.value = data.tags;
-}
-
 // --- Reload on filter change ---
-watch([debouncedQuery, selectedSource, selectedTagId], () => {
+watch([debouncedQuery, selectedSource], () => {
   loadArticles();
 });
 
@@ -144,7 +133,6 @@ onDeactivated(() => {
 // --- Init ---
 onMounted(() => {
   loadArticles();
-  fetchTags();
 });
 </script>
 
@@ -188,17 +176,6 @@ onMounted(() => {
           {{ f.label }}
         </button>
       </div>
-
-      <!-- Tag dropdown -->
-      <select
-        v-model="selectedTagId"
-        class="input-base bg-surface-2 px-4 py-2 text-sm font-body rounded-lg"
-      >
-        <option value="">全てのタグ</option>
-        <option v-for="tag in tags" :key="tag.id" :value="tag.id">
-          {{ tag.name }} ({{ tag.articleCount }})
-        </option>
-      </select>
     </div>
 
     <!-- Loading skeleton -->
