@@ -26,6 +26,12 @@ const sourceFilters = [
   { value: "qiita", label: "Qiita" },
   { value: "zenn", label: "Zenn" },
   { value: "hatena", label: "はてな" },
+  { value: "github", label: "GitHub" },
+  { value: "classmethod", label: "DevelopersIO" },
+  { value: "medium", label: "Medium" },
+  { value: "note", label: "note" },
+  { value: "devto", label: "DEV" },
+  { value: "stackoverflow", label: "Stack Overflow" },
   { value: "other", label: "その他" },
 ] as const;
 
@@ -34,6 +40,12 @@ const sourceBadgeStyles: Record<string, string> = {
   qiita: "bg-success/15 text-success",
   zenn: "bg-purple/15 text-purple",
   hatena: "bg-error/15 text-error",
+  github: "bg-foreground/15 text-foreground",
+  classmethod: "bg-warning/15 text-warning",
+  medium: "bg-foreground/15 text-foreground",
+  note: "bg-success/15 text-success",
+  devto: "bg-foreground/15 text-foreground",
+  stackoverflow: "bg-warning/15 text-warning",
   other: "bg-muted/15 text-muted",
 };
 
@@ -42,6 +54,12 @@ const sourceLabels: Record<string, string> = {
   qiita: "Qiita",
   zenn: "Zenn",
   hatena: "はてな",
+  github: "GitHub",
+  classmethod: "DevelopersIO",
+  medium: "Medium",
+  note: "note",
+  devto: "DEV",
+  stackoverflow: "Stack Overflow",
   other: "その他",
 };
 
