@@ -4,23 +4,20 @@ import { useViewTransition } from "@/composables/useViewTransition";
 
 const vt = useViewTransition();
 
+// ブラウザネイティブのスクロール復元を無効化し、自前の制御と競合を防ぐ
+history.scrollRestoration = "manual";
+
 const isBackToList = (toPath: string, fromPath: string) =>
   toPath === "/" && fromPath.startsWith("/articles/");
 
 const router = createRouter({
   history: createWebHistory(),
-  scrollBehavior(to, from, savedPosition) {
-    if (!isBackToList(to.path, from.path)) {
-      return { top: 0 };
-    }
-
-    // VT対応ブラウザ: afterEach内でsnapshot前にスクロール復元するため、ここでは何もしない
-    if ("startViewTransition" in document) {
+  scrollBehavior(to, from) {
+    // 一覧に戻る場合: スクロール制御をonActivatedに委譲
+    if (isBackToList(to.path, from.path)) {
       return false;
     }
-
-    // 非VTブラウザ: ブラウザバックならsavedPosition、プログラマティック遷移なら保存値を使う
-    return savedPosition ?? { top: vt.getSavedScrollY() };
+    return { top: 0 };
   },
   routes: [
     {
@@ -110,15 +107,8 @@ router.beforeResolve(async (to, from) => {
   });
 });
 
-router.afterEach(async (to, from) => {
+router.afterEach(async () => {
   await nextTick();
-
-  // VTブラウザ: resolveTransition() の前にスクロール位置を復元し、
-  // 新しいスナップショットに正しいスクロール位置を反映させる
-  if (resolveTransition && isBackToList(to.path, from.path)) {
-    vt.restoreScroll();
-  }
-
   resolveTransition?.();
   resolveTransition = null;
 });

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onDeactivated } from "vue";
+import { ref, computed, watch, onMounted, onActivated, onDeactivated } from "vue";
 import { RouterLink } from "vue-router";
 import { useApi } from "@/composables/useApi";
 import { useViewTransition } from "@/composables/useViewTransition";
@@ -8,7 +8,8 @@ import type { Article } from "@/types/article";
 defineOptions({ name: "HomePage" });
 
 const api = useApi();
-const { transitioningArticleId, startTransition, saveScrollY } = useViewTransition();
+const { transitioningArticleId, startTransition, saveScrollY, getSavedScrollY } =
+  useViewTransition();
 
 // --- State ---
 const searchQuery = ref("");
@@ -144,6 +145,13 @@ function formatDate(dateStr: string): string {
 const isEmpty = computed(() => !isLoading.value && articles.value.length === 0);
 
 // --- Scroll position ---
+onActivated(() => {
+  const y = getSavedScrollY();
+  if (y > 0) {
+    window.scrollTo(0, y);
+  }
+});
+
 onDeactivated(() => {
   saveScrollY(window.scrollY);
 });
