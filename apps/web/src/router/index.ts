@@ -9,12 +9,11 @@ const isBackToList = (toPath: string, fromPath: string) =>
 
 const router = createRouter({
   history: createWebHistory(),
-  scrollBehavior(_to, _from, savedPosition) {
-    // ブラウザバック/フォワード時は保存済みスクロール位置を復元
-    if (savedPosition) {
+  scrollBehavior(to, from, savedPosition) {
+    // 詳細→一覧への遷移時のみスクロール位置を復元
+    if (isBackToList(to.path, from.path) && savedPosition) {
       return savedPosition;
     }
-    // 新規遷移は先頭へ
     return { top: 0 };
   },
   routes: [
