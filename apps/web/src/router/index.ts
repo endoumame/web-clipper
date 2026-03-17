@@ -45,6 +45,13 @@ const router = createRouter({
   ],
 });
 
+// 一覧から離れる前にスクロール位置を保存（VTのスナップショットより前に実行する必要がある）
+router.beforeEach((to, from) => {
+  if (from.path === "/" && to.path !== "/") {
+    vt.saveScrollY(window.scrollY);
+  }
+});
+
 // Navigation guard
 router.beforeEach(async (to) => {
   // Dynamic import to avoid circular dependency
