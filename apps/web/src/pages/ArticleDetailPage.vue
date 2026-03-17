@@ -184,7 +184,14 @@ function goBack() {
       source: article.value.source,
     });
   }
-  router.push("/");
+  // history.state.back が '/' の場合はブラウザバックを使用してスクロール位置を復元する。
+  // router.push('/') だと savedPosition が null になり scrollBehavior でスクロール復元できないため。
+  // 直接 URL アクセス時など back が '/' でない場合は push にフォールバックする。
+  if (history.state?.back === "/") {
+    router.go(-1);
+  } else {
+    router.push("/");
+  }
 }
 
 async function deleteArticle() {
