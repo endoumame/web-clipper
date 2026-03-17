@@ -37,6 +37,12 @@ const sourceColors: Record<Article["source"], string> = {
   qiita: "bg-success/20 text-success",
   zenn: "bg-purple/20 text-purple",
   hatena: "bg-error/20 text-error",
+  github: "bg-foreground/20 text-foreground",
+  classmethod: "bg-warning/20 text-warning",
+  medium: "bg-foreground/20 text-foreground",
+  note: "bg-success/20 text-success",
+  devto: "bg-foreground/20 text-foreground",
+  stackoverflow: "bg-warning/20 text-warning",
   other: "bg-muted/20 text-muted",
 };
 

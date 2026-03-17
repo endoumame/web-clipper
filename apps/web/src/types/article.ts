@@ -3,7 +3,18 @@ export interface Article {
   url: string;
   title: string;
   description: string | null;
-  source: "twitter" | "qiita" | "zenn" | "hatena" | "other";
+  source:
+    | "twitter"
+    | "qiita"
+    | "zenn"
+    | "hatena"
+    | "github"
+    | "classmethod"
+    | "medium"
+    | "note"
+    | "devto"
+    | "stackoverflow"
+    | "other";
   ogImageUrl: string | null;
   memo: string | null;
   isRead: boolean;
