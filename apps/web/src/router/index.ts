@@ -4,21 +4,11 @@ import { useViewTransition } from "@/composables/useViewTransition";
 
 const vt = useViewTransition();
 
-// ブラウザネイティブのスクロール復元を無効化し、自前の制御と競合を防ぐ
-history.scrollRestoration = "manual";
-
 const isBackToList = (toPath: string, fromPath: string) =>
   toPath === "/" && fromPath.startsWith("/articles/");
 
 const router = createRouter({
   history: createWebHistory(),
-  scrollBehavior(to, from) {
-    // 一覧に戻る場合: スクロール制御をonActivatedに委譲
-    if (isBackToList(to.path, from.path)) {
-      return false;
-    }
-    return { top: 0 };
-  },
   routes: [
     {
       path: "/login",
@@ -43,13 +33,6 @@ const router = createRouter({
       component: () => import("@/pages/ArticleDetailPage.vue"),
     },
   ],
-});
-
-// 一覧から離れる前にスクロール位置を保存（VTのスナップショットより前に実行する必要がある）
-router.beforeEach((to, from) => {
-  if (from.path === "/" && to.path !== "/") {
-    vt.saveScrollY(window.scrollY);
-  }
 });
 
 // Navigation guard
@@ -109,7 +92,6 @@ router.beforeResolve(async (to, from) => {
 
     transition.finished.then(() => {
       vt.clearTransition();
-      vt.resetSavedScrollY();
     });
   });
 });

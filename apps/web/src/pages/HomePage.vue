@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onActivated } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { RouterLink } from "vue-router";
 import { useApi } from "@/composables/useApi";
 import { useViewTransition } from "@/composables/useViewTransition";
@@ -8,7 +8,7 @@ import type { Article } from "@/types/article";
 defineOptions({ name: "HomePage" });
 
 const api = useApi();
-const { transitioningArticleId, startTransition, getSavedScrollY } = useViewTransition();
+const { transitioningArticleId, startTransition } = useViewTransition();
 
 // --- State ---
 const searchQuery = ref("");
@@ -142,15 +142,6 @@ function formatDate(dateStr: string): string {
 }
 
 const isEmpty = computed(() => !isLoading.value && articles.value.length === 0);
-
-// --- Scroll position ---
-// スクロール保存はrouter.beforeEach（VT開始前）で実施済み
-onActivated(() => {
-  const y = getSavedScrollY();
-  if (y > 0) {
-    window.scrollTo(0, y);
-  }
-});
 
 // --- Init ---
 onMounted(() => {
