@@ -37,6 +37,16 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && pnpm test 2>&1 | tail -30"
+          }
+        ]
+      }
     ]
   }
 }
