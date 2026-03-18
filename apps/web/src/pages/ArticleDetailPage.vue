@@ -286,7 +286,10 @@ onMounted(() => {
               <span class="inline-block w-2.5 h-2.5 rounded-full bg-muted/30" />
             </span>
           </div>
-          <div class="mt-3 flex flex-wrap items-center gap-2">
+          <div
+            class="mt-3 flex flex-wrap items-center gap-2"
+            style="view-transition-name: article-meta"
+          >
             <span
               class="badge-base px-2 py-0.5 text-xs font-medium rounded-full"
               :class="sourceBadgeStyles[transitionArticle.source]"
@@ -412,7 +415,10 @@ onMounted(() => {
           </div>
 
           <!-- メタ情報 -->
-          <div class="mt-3 flex flex-wrap items-center gap-2">
+          <div
+            class="mt-3 flex flex-wrap items-center gap-2"
+            style="view-transition-name: article-meta"
+          >
             <!-- ソースバッジ -->
             <span
               class="badge-base px-2 py-0.5 text-xs font-medium rounded-full"

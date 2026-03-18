@@ -289,7 +289,12 @@ onMounted(() => {
           </div>
 
           <!-- Meta -->
-          <div class="mt-3 flex flex-wrap items-center gap-2">
+          <div
+            class="mt-3 flex flex-wrap items-center gap-2"
+            :style="
+              article.id === transitioningArticleId ? { viewTransitionName: 'article-meta' } : {}
+            "
+          >
             <!-- Source badge -->
             <span
               class="badge-base px-2 py-0.5 text-xs font-medium rounded-full"

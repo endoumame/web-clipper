@@ -78,18 +78,21 @@ async function handleLogout() {
   animation-timing-function: ease-out;
 }
 
-/* 共有要素の遷移: image と title のみ */
+/* 共有要素の遷移: image, title, meta */
 ::view-transition-old(article-image),
 ::view-transition-new(article-image),
 ::view-transition-old(article-title),
-::view-transition-new(article-title) {
+::view-transition-new(article-title),
+::view-transition-old(article-meta),
+::view-transition-new(article-meta) {
   animation-duration: 0.4s;
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* 共有要素の位置・サイズ補間を old/new と同じタイミングに揃える */
 ::view-transition-group(article-image),
-::view-transition-group(article-title) {
+::view-transition-group(article-title),
+::view-transition-group(article-meta) {
   animation-duration: 0.4s;
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   z-index: 10;
