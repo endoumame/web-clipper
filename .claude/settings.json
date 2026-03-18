@@ -1,5 +1,16 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'FILE=$(jq -r \".tool_input.file_path // .tool_input.path\" <<< \"$(cat)\"); PROTECTED=\"lefthook.yml tsconfig.json .oxfmtrc.json oxlint.config.ts .oxfmtignore .prettierignore\"; for p in $PROTECTED; do case \"$FILE\" in *$p*) echo \"BLOCKED: $FILE is a protected config file. Fix the code, not the linter/formatter config.\" >&2; exit 2;; esac; done'"
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "matcher": "startup",
