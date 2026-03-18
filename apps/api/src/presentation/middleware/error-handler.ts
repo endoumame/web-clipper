@@ -1,4 +1,4 @@
-import type { DomainError } from "../../domain/errors.js";
+import type { DomainError } from "../../domain/shared/index.js";
 
 const STATUS_MAP = {
   ARTICLE_NOT_FOUND: 404,

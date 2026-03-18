@@ -1,7 +1,7 @@
-import type { ArticleId } from "../values/article-id.js";
-import type { ArticleUrl } from "../values/article-url.js";
-import type { Source } from "../values/source.js";
-import type { TagName } from "../values/tag-name.js";
+import type { ArticleId } from "./article-id.js";
+import type { ArticleUrl } from "./article-url.js";
+import type { Source } from "./source.js";
+import type { TagName } from "../tag/tag-name.js";
 
 export type Article = {
   readonly id: ArticleId;

@@ -1,5 +1,5 @@
-import type { SessionId } from "../values/session-id.js";
-import type { UserId } from "../values/user-id.js";
+import type { SessionId } from "./session-id.js";
+import type { UserId } from "../user/user-id.js";
 
 const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 

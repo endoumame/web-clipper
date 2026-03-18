@@ -1,8 +1,7 @@
 import { ok, err } from "neverthrow";
 import type { ResultAsync } from "neverthrow";
-import type { ArticleRepository } from "../../domain/ports/mod.js";
-import { ArticleIdVO } from "../../domain/values/article-id.js";
-import type { DomainError } from "../../domain/errors.js";
+import { type ArticleRepository, ArticleIdVO } from "../../domain/article/index.js";
+import type { DomainError } from "../../domain/shared/index.js";
 
 export const deleteArticle =
   (deps: { readonly articleRepo: ArticleRepository }) =>

@@ -1,6 +1,6 @@
 import { err, type ResultAsync } from "neverthrow";
-import type { TagRepository } from "../../domain/ports/mod.js";
-import type { DomainError } from "../../domain/errors.js";
+import type { TagRepository } from "../../domain/tag/index.js";
+import type { DomainError } from "../../domain/shared/index.js";
 
 type DeleteTagDeps = {
   readonly tagRepo: TagRepository;

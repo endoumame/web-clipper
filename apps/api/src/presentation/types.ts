@@ -1,12 +1,8 @@
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import type {
-  ArticleRepository,
-  MetadataFetcher,
-  UserRepository,
-  SessionRepository,
-  PasswordHasher,
-  TagRepository,
-} from "../domain/ports/mod.js";
+import type { ArticleRepository, MetadataFetcher } from "../domain/article/index.js";
+import type { UserRepository, PasswordHasher } from "../domain/user/index.js";
+import type { TagRepository } from "../domain/tag/index.js";
+import type { SessionRepository } from "../domain/session/index.js";
 
 export type Deps = {
   readonly articleRepo: ArticleRepository;

@@ -1,9 +1,12 @@
 import { ok, err, type ResultAsync } from "neverthrow";
-import type { ArticleRepository } from "../../domain/ports/mod.js";
-import { ArticleIdVO } from "../../domain/values/article-id.js";
-import { TagNameVO } from "../../domain/values/tag-name.js";
-import { ArticleEntity, type Article } from "../../domain/entities/mod.js";
-import type { DomainError } from "../../domain/errors.js";
+import {
+  type ArticleRepository,
+  ArticleIdVO,
+  ArticleEntity,
+  type Article,
+} from "../../domain/article/index.js";
+import { TagNameVO } from "../../domain/tag/index.js";
+import type { DomainError } from "../../domain/shared/index.js";
 
 type UpdateArticleDeps = {
   readonly articleRepo: ArticleRepository;

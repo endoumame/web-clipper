@@ -1,4 +1,4 @@
-import type { TagName } from "../values/tag-name.js";
+import type { TagName } from "./tag-name.js";
 
 export type Tag = {
   readonly id: string;

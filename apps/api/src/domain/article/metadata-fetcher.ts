@@ -1,6 +1,6 @@
 import type { ResultAsync } from "neverthrow";
-import type { ArticleUrl } from "../values/mod.js";
-import type { DomainError } from "../errors.js";
+import type { ArticleUrl } from "./article-url.js";
+import type { DomainError } from "../shared/errors.js";
 
 export type ArticleMetadata = {
   readonly title: string;

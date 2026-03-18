@@ -1,10 +1,8 @@
 import { ResultAsync } from "neverthrow";
 import { eq, count } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import type { UserRepository } from "../../domain/ports/mod.js";
-import type { User } from "../../domain/entities/mod.js";
-import type { UserId } from "../../domain/values/mod.js";
-import type { DomainError } from "../../domain/errors.js";
+import type { UserRepository, User, UserId } from "../../domain/user/index.js";
+import type { DomainError } from "../../domain/shared/index.js";
 import { users } from "./schema.js";
 import { userToDomain, userToPersistence } from "./mappers.js";
 

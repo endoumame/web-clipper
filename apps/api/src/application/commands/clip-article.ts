@@ -1,11 +1,15 @@
 import { ok, err, type ResultAsync } from "neverthrow";
-import type { ArticleRepository, MetadataFetcher } from "../../domain/ports/mod.js";
-import { ArticleIdVO } from "../../domain/values/article-id.js";
-import { ArticleUrlVO } from "../../domain/values/article-url.js";
-import { TagNameVO } from "../../domain/values/tag-name.js";
-import { SourceVO } from "../../domain/values/source.js";
-import { ArticleEntity, type Article } from "../../domain/entities/mod.js";
-import type { DomainError } from "../../domain/errors.js";
+import {
+  type ArticleRepository,
+  type MetadataFetcher,
+  ArticleIdVO,
+  ArticleUrlVO,
+  SourceVO,
+  ArticleEntity,
+  type Article,
+} from "../../domain/article/index.js";
+import { TagNameVO } from "../../domain/tag/index.js";
+import type { DomainError } from "../../domain/shared/index.js";
 
 type ClipArticleDeps = {
   readonly articleRepo: ArticleRepository;

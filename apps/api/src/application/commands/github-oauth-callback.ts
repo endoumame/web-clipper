@@ -1,8 +1,12 @@
 import { err, type ResultAsync } from "neverthrow";
-import type { UserRepository, SessionRepository } from "../../domain/ports/mod.js";
-import { SessionIdVO } from "../../domain/values/mod.js";
-import { SessionEntity, UserEntity, type User, type Session } from "../../domain/entities/mod.js";
-import type { DomainError } from "../../domain/errors.js";
+import { type UserRepository, UserEntity, type User } from "../../domain/user/index.js";
+import {
+  type SessionRepository,
+  SessionEntity,
+  SessionIdVO,
+  type Session,
+} from "../../domain/session/index.js";
+import type { DomainError } from "../../domain/shared/index.js";
 
 type GitHubOAuthCallbackDeps = {
   readonly userRepo: UserRepository;

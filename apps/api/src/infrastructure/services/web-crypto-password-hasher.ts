@@ -1,6 +1,6 @@
 import { ResultAsync } from "neverthrow";
-import type { PasswordHasher } from "../../domain/ports/password-hasher.js";
-import type { DomainError } from "../../domain/errors.js";
+import type { PasswordHasher } from "../../domain/user/index.js";
+import type { DomainError } from "../../domain/shared/index.js";
 
 const ITERATIONS = 100_000;
 const HASH_ALGORITHM = "SHA-256";

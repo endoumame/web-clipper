@@ -1,13 +1,14 @@
 import type { InferSelectModel } from "drizzle-orm";
-import { ArticleIdVO } from "../../domain/values/article-id.js";
-import { ArticleUrlVO } from "../../domain/values/article-url.js";
-import { TagNameVO } from "../../domain/values/tag-name.js";
-import { UserIdVO } from "../../domain/values/user-id.js";
-import { SessionIdVO } from "../../domain/values/session-id.js";
-import { SourceVO } from "../../domain/values/source.js";
-import { ArticleEntity, type Article } from "../../domain/entities/mod.js";
-import type { User } from "../../domain/entities/user.js";
-import type { Session } from "../../domain/entities/session.js";
+import {
+  ArticleIdVO,
+  ArticleUrlVO,
+  SourceVO,
+  ArticleEntity,
+  type Article,
+} from "../../domain/article/index.js";
+import { TagNameVO } from "../../domain/tag/index.js";
+import { UserIdVO, type User } from "../../domain/user/index.js";
+import { SessionIdVO, type Session } from "../../domain/session/index.js";
 import type { articles, users, sessions } from "./schema.js";
 
 type ArticleRow = InferSelectModel<typeof articles>;
