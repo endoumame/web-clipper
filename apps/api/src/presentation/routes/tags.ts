@@ -130,7 +130,7 @@ export const tagRoutes = new OpenAPIHono<AppEnv>()
           },
           201,
         ),
-      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus(error) as 400 | 409),
+      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<400 | 409>(error)),
     );
   })
   .openapi(deleteTagRoute, async (c) => {
@@ -138,7 +138,7 @@ export const tagRoutes = new OpenAPIHono<AppEnv>()
     const { id } = c.req.valid("param");
     const result = await deleteTag({ tagRepo: deps.tagRepo })(id);
     return result.match(
-      () => new Response(null, { status: 204 }) as unknown as Response & { status: 204 },
-      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus(error) as 404),
+      () => c.body(null, 204),
+      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<404>(error)),
     );
   });

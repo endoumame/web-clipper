@@ -193,7 +193,7 @@ export const authRoutes = new OpenAPIHono<AppEnv>()
     const result = await checkSetupStatus({ userRepo: deps.userRepo })();
     return result.match(
       (status) => c.json(status, 200),
-      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus(error) as 500),
+      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<500>(error)),
     );
   })
   .openapi(setupRoute, async (c) => {
@@ -220,7 +220,7 @@ export const authRoutes = new OpenAPIHono<AppEnv>()
           200,
         );
       },
-      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus(error) as 409),
+      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<409>(error)),
     );
   })
   .openapi(loginRoute, async (c) => {
@@ -247,7 +247,7 @@ export const authRoutes = new OpenAPIHono<AppEnv>()
           200,
         );
       },
-      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus(error) as 401),
+      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<401>(error)),
     );
   })
   .openapi(logoutRoute, async (c) => {
@@ -257,7 +257,7 @@ export const authRoutes = new OpenAPIHono<AppEnv>()
       await logout({ sessionRepo: deps.sessionRepo })(sessionId);
     }
     c.header("Set-Cookie", createExpiredSessionCookie());
-    return new Response(null, { status: 204 }) as unknown as Response & { status: 204 };
+    return c.body(null, 204);
   })
   .openapi(githubAuthRoute, async (c) => {
     const state = crypto.randomUUID();
@@ -296,7 +296,7 @@ export const authRoutes = new OpenAPIHono<AppEnv>()
       }),
     });
 
-    const tokenData = (await tokenRes.json()) as { access_token?: string; error?: string };
+    const tokenData: { access_token?: string; error?: string } = await tokenRes.json();
     if (!tokenData.access_token) {
       return c.json({ error: "OAUTH_ERROR", message: "Failed to get access token" }, 401);
     }
@@ -309,7 +309,7 @@ export const authRoutes = new OpenAPIHono<AppEnv>()
       },
     });
 
-    const githubUser = (await userRes.json()) as { id: number; login: string };
+    const githubUser: { id: number; login: string } = await userRes.json();
     if (!githubUser.id) {
       return c.json({ error: "OAUTH_ERROR", message: "Failed to get GitHub user info" }, 401);
     }
@@ -330,7 +330,7 @@ export const authRoutes = new OpenAPIHono<AppEnv>()
         const redirectUrl = c.env.ALLOWED_ORIGIN || "/";
         return c.redirect(redirectUrl, 302);
       },
-      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus(error) as 401),
+      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<401>(error)),
     );
   })
   .openapi(meRoute, async (c) => {
@@ -342,6 +342,6 @@ export const authRoutes = new OpenAPIHono<AppEnv>()
     })(sessionId);
     return result.match(
       (status) => c.json(status, 200),
-      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus(error) as 500),
+      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<500>(error)),
     );
   });

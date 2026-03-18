@@ -1,10 +1,10 @@
 import type { InferSelectModel } from "drizzle-orm";
-import { ArticleIdVO, type ArticleId } from "../../domain/values/article-id.js";
-import { ArticleUrlVO, type ArticleUrl } from "../../domain/values/article-url.js";
-import { TagNameVO, type TagName } from "../../domain/values/tag-name.js";
-import { UserIdVO, type UserId } from "../../domain/values/user-id.js";
-import { SessionIdVO, type SessionId } from "../../domain/values/session-id.js";
-import type { Source } from "../../domain/values/source.js";
+import { ArticleIdVO } from "../../domain/values/article-id.js";
+import { ArticleUrlVO } from "../../domain/values/article-url.js";
+import { TagNameVO } from "../../domain/values/tag-name.js";
+import { UserIdVO } from "../../domain/values/user-id.js";
+import { SessionIdVO } from "../../domain/values/session-id.js";
+import { SourceVO } from "../../domain/values/source.js";
 import { ArticleEntity, type Article } from "../../domain/entities/mod.js";
 import type { User } from "../../domain/entities/user.js";
 import type { Session } from "../../domain/entities/session.js";
@@ -14,15 +14,15 @@ type ArticleRow = InferSelectModel<typeof articles>;
 
 export const toDomain = (row: ArticleRow, tagNames: string[]): Article =>
   ArticleEntity.reconstruct({
-    id: ArticleIdVO.schema.parse(row.id) as ArticleId,
-    url: ArticleUrlVO.schema.parse(row.url) as ArticleUrl,
+    id: ArticleIdVO.schema.parse(row.id),
+    url: ArticleUrlVO.schema.parse(row.url),
     title: row.title,
     description: row.description,
-    source: row.source as Source,
+    source: SourceVO.schema.parse(row.source),
     ogImageUrl: row.ogImageUrl,
     memo: row.memo,
     isRead: row.isRead,
-    tags: tagNames.map((name) => TagNameVO.schema.parse(name) as TagName),
+    tags: tagNames.map((name) => TagNameVO.schema.parse(name)),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   });
@@ -50,7 +50,7 @@ export const toPersistence = (
 type UserRow = InferSelectModel<typeof users>;
 
 export const userToDomain = (row: UserRow): User => ({
-  id: UserIdVO.schema.parse(row.id) as UserId,
+  id: UserIdVO.schema.parse(row.id),
   username: row.username,
   passwordHash: row.passwordHash,
   passwordSalt: row.passwordSalt,
@@ -79,8 +79,8 @@ export const userToPersistence = (
 type SessionRow = InferSelectModel<typeof sessions>;
 
 export const sessionToDomain = (row: SessionRow): Session => ({
-  id: SessionIdVO.schema.parse(row.id) as SessionId,
-  userId: UserIdVO.schema.parse(row.userId) as UserId,
+  id: SessionIdVO.schema.parse(row.id),
+  userId: UserIdVO.schema.parse(row.userId),
   expiresAt: row.expiresAt,
   createdAt: row.createdAt,
 });

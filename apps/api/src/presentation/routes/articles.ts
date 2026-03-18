@@ -6,6 +6,7 @@ import {
   ArticleListResponseSchema,
   ArticleQueryParamsSchema,
   ErrorResponseSchema,
+  SourceSchema,
 } from "@web-clipper/shared";
 import type { AppEnv } from "../types.js";
 import { domainErrorToResponse, domainErrorToStatus } from "../middleware/error-handler.js";
@@ -29,7 +30,7 @@ const toArticleResponse = (article: {
   url: article.url,
   title: article.title,
   description: article.description,
-  source: article.source as "twitter" | "qiita" | "zenn" | "hatena" | "other",
+  source: SourceSchema.parse(article.source),
   ogImageUrl: article.ogImageUrl,
   memo: article.memo,
   isRead: article.isRead,
@@ -232,7 +233,7 @@ export const articleRoutes = new OpenAPIHono<AppEnv>()
           ...a,
           memo: null,
           tags: [],
-          source: a.source as "twitter" | "qiita" | "zenn" | "hatena" | "other",
+          source: SourceSchema.parse(a.source),
           updatedAt: a.createdAt.toISOString(),
           createdAt: a.createdAt.toISOString(),
           ogImageUrl: a.ogImageUrl ?? null,
@@ -261,8 +262,7 @@ export const articleRoutes = new OpenAPIHono<AppEnv>()
     })({ url: body.url, tags: body.tags, memo: body.memo });
     return result.match(
       (article) => c.json(toArticleResponse(article), 201),
-      (error) =>
-        c.json(domainErrorToResponse(error), domainErrorToStatus(error) as 400 | 409 | 502),
+      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<400 | 409 | 502>(error)),
     );
   })
   .openapi(updateArticleRoute, async (c) => {
@@ -274,7 +274,7 @@ export const articleRoutes = new OpenAPIHono<AppEnv>()
     })({ id, ...body });
     return result.match(
       (article) => c.json(toArticleResponse(article), 200),
-      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus(error) as 400 | 404),
+      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<400 | 404>(error)),
     );
   })
   .openapi(deleteArticleRoute, async (c) => {
@@ -284,7 +284,7 @@ export const articleRoutes = new OpenAPIHono<AppEnv>()
       articleRepo: deps.articleRepo,
     })(id);
     return result.match(
-      () => new Response(null, { status: 204 }) as unknown as Response & { status: 204 },
-      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus(error) as 404),
+      () => c.body(null, 204),
+      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<404>(error)),
     );
   });

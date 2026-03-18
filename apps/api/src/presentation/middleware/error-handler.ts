@@ -1,33 +1,29 @@
 import type { DomainError } from "../../domain/errors.js";
 
-export const domainErrorToStatus = (error: DomainError): number => {
-  switch (error.type) {
-    case "ARTICLE_NOT_FOUND":
-    case "TAG_NOT_FOUND":
-      return 404;
-    case "ARTICLE_ALREADY_EXISTS":
-    case "TAG_ALREADY_EXISTS":
-      return 409;
-    case "SETUP_ALREADY_COMPLETED":
-      return 409;
-    case "INVALID_URL":
-    case "INVALID_TAG_NAME":
-    case "INVALID_ARTICLE_ID":
-    case "INVALID_USER_ID":
-    case "INVALID_SESSION_ID":
-      return 400;
-    case "INVALID_CREDENTIALS":
-    case "SESSION_NOT_FOUND":
-    case "SESSION_EXPIRED":
-      return 401;
-    case "METADATA_FETCH_FAILED":
-      return 502;
-    case "OAUTH_ERROR":
-      return 401;
-    case "STORAGE_ERROR":
-      return 500;
-  }
-};
+const STATUS_MAP = {
+  ARTICLE_NOT_FOUND: 404,
+  TAG_NOT_FOUND: 404,
+  ARTICLE_ALREADY_EXISTS: 409,
+  TAG_ALREADY_EXISTS: 409,
+  SETUP_ALREADY_COMPLETED: 409,
+  INVALID_URL: 400,
+  INVALID_TAG_NAME: 400,
+  INVALID_ARTICLE_ID: 400,
+  INVALID_USER_ID: 400,
+  INVALID_SESSION_ID: 400,
+  INVALID_CREDENTIALS: 401,
+  SESSION_NOT_FOUND: 401,
+  SESSION_EXPIRED: 401,
+  METADATA_FETCH_FAILED: 502,
+  OAUTH_ERROR: 401,
+  STORAGE_ERROR: 500,
+} as const satisfies Record<DomainError["type"], number>;
+
+type DomainStatusCode = (typeof STATUS_MAP)[DomainError["type"]];
+
+export const domainErrorToStatus = <S extends DomainStatusCode>(error: DomainError): S =>
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Hono requires exact status code literals; centralizing the only unavoidable cast here
+  STATUS_MAP[error.type] as S;
 
 export const domainErrorToResponse = (error: DomainError) => ({
   error: error.type,

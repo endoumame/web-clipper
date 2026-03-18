@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 const SOURCES = [
   "twitter",
   "qiita",
@@ -61,4 +63,6 @@ const fromUrl = (url: string): Source => {
   return "other";
 };
 
-export const SourceVO = { values: SOURCES, fromUrl } as const;
+const SourceSchema = z.enum(SOURCES);
+
+export const SourceVO = { values: SOURCES, fromUrl, schema: SourceSchema } as const;

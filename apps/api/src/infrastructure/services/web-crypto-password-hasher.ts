@@ -10,13 +10,17 @@ const SALT_LENGTH = 32;
 const toBase64 = (buffer: ArrayBuffer): string =>
   btoa(String.fromCharCode(...new Uint8Array(buffer)));
 
-const fromBase64 = (base64: string): Uint8Array =>
-  Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+const fromBase64 = (base64: string): Uint8Array<ArrayBuffer> => {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+};
 
-const deriveKey = async (password: string, salt: Uint8Array): Promise<ArrayBuffer> => {
+const deriveKey = async (password: string, salt: Uint8Array<ArrayBuffer>): Promise<ArrayBuffer> => {
   const keyMaterial = await crypto.subtle.importKey(
     "raw",
-    new TextEncoder().encode(password).buffer as ArrayBuffer,
+    new TextEncoder().encode(password),
     "PBKDF2",
     false,
     ["deriveBits"],
@@ -24,7 +28,7 @@ const deriveKey = async (password: string, salt: Uint8Array): Promise<ArrayBuffe
   return crypto.subtle.deriveBits(
     {
       name: "PBKDF2",
-      salt: salt.buffer as ArrayBuffer,
+      salt,
       iterations: ITERATIONS,
       hash: HASH_ALGORITHM,
     },

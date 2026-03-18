@@ -83,7 +83,7 @@ router.beforeResolve(async (to, from) => {
   // ブラウザバックで一覧に戻る場合、transitioningArticleIdを自動設定
   // （goBack()経由なら既にstartTransition()でセット済み）
   if (isBackToList(to.path, from.path) && !vt.transitioningArticleId.value) {
-    const articleId = from.params.id as string;
+    const articleId = String(from.params.id);
     if (articleId) {
       vt.transitioningArticleId.value = articleId;
     }
@@ -97,7 +97,7 @@ router.beforeResolve(async (to, from) => {
       });
     });
 
-    transition.finished.then(() => {
+    void transition.finished.then(() => {
       vt.clearTransition();
     });
   });
