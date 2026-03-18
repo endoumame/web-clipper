@@ -3,6 +3,9 @@ import type { ArticleRepository, MetadataFetcher } from "../domain/article/index
 import type { UserRepository, PasswordHasher } from "../domain/user/index.js";
 import type { TagRepository } from "../domain/tag/index.js";
 import type { SessionRepository } from "../domain/session/index.js";
+import type { GitHubOAuthClient } from "../infrastructure/services/github-oauth-client.js";
+import type { ArticleQueryService } from "../application/queries/article-query-service.js";
+import type { TagQueryService } from "../application/queries/tag-query-service.js";
 
 export type Deps = {
   readonly articleRepo: ArticleRepository;
@@ -11,6 +14,9 @@ export type Deps = {
   readonly sessionRepo: SessionRepository;
   readonly passwordHasher: PasswordHasher;
   readonly tagRepo: TagRepository;
+  readonly githubOAuth: GitHubOAuthClient;
+  readonly articleQuery: ArticleQueryService;
+  readonly tagQuery: TagQueryService;
   readonly db: DrizzleD1Database;
 };
 

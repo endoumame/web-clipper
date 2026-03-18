@@ -4,7 +4,7 @@ import type { DrizzleD1Database } from "drizzle-orm/d1";
 import type { SessionRepository, Session, SessionId } from "../../domain/session/index.js";
 import type { DomainError } from "../../domain/shared/index.js";
 import { sessions } from "./schema.js";
-import { sessionToDomain, sessionToPersistence } from "./mappers.js";
+import { sessionToDomain, sessionToPersistence } from "./session-mapper.js";
 
 const toStorageError = (error: unknown): DomainError => ({
   type: "STORAGE_ERROR",

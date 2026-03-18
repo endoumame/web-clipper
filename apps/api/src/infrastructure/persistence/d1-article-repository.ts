@@ -10,7 +10,7 @@ import type {
 } from "../../domain/article/index.js";
 import type { DomainError } from "../../domain/shared/index.js";
 import { articles, tags, articleTags } from "./schema.js";
-import { toDomain, toPersistence } from "./mappers.js";
+import { articleToDomain, articleToPersistence } from "./article-mapper.js";
 
 const toStorageError = (error: unknown): DomainError => ({
   type: "STORAGE_ERROR",
@@ -34,7 +34,7 @@ export const createD1ArticleRepository = (db: DrizzleD1Database): ArticleReposit
         const row = await db.select().from(articles).where(eq(articles.id, id)).get();
         if (!row) return null;
         const tagNames = await fetchTagNames(db, id);
-        return toDomain(row, tagNames);
+        return articleToDomain(row, tagNames);
       })(),
       toStorageError,
     ),
@@ -45,7 +45,7 @@ export const createD1ArticleRepository = (db: DrizzleD1Database): ArticleReposit
         const row = await db.select().from(articles).where(eq(articles.url, url)).get();
         if (!row) return null;
         const tagNames = await fetchTagNames(db, row.id);
-        return toDomain(row, tagNames);
+        return articleToDomain(row, tagNames);
       })(),
       toStorageError,
     ),
@@ -53,7 +53,7 @@ export const createD1ArticleRepository = (db: DrizzleD1Database): ArticleReposit
   save: (article: Article): ResultAsync<Article, DomainError> =>
     ResultAsync.fromPromise(
       (async () => {
-        const row = toPersistence(article);
+        const row = articleToPersistence(article);
         await db.insert(articles).values(row).onConflictDoUpdate({
           target: articles.id,
           set: row,

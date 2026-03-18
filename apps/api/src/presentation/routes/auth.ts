@@ -9,8 +9,8 @@ import {
 } from "@web-clipper/shared";
 import type { AppEnv } from "../types.js";
 import { domainErrorToResponse, domainErrorToStatus } from "../middleware/error-handler.js";
-import { setupUser, login, logout, githubOAuthCallback } from "../../application/commands/mod.js";
-import { checkSetupStatus, getAuthStatus } from "../../application/queries/mod.js";
+import { setupUser, login, logout, githubOAuthCallback } from "../../application/commands/index.js";
+import { checkSetupStatus, getAuthStatus } from "../../application/queries/index.js";
 import {
   SESSION_COOKIE_NAME,
   createSessionCookie,
@@ -282,40 +282,24 @@ export const authRoutes = new OpenAPIHono<AppEnv>()
     // Clear state cookie
     c.header("Set-Cookie", "oauth_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0");
 
-    // Exchange code for access token
-    const tokenRes = await fetch("https://github.com/login/oauth/access_token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        client_id: c.env.GITHUB_CLIENT_ID,
-        client_secret: c.env.GITHUB_CLIENT_SECRET,
-        code,
-      }),
-    });
+    const deps = c.get("deps");
+    const redirectUri = `${c.env.ALLOWED_ORIGIN}/api/auth/github/callback`;
 
-    const tokenData: { access_token?: string; error?: string } = await tokenRes.json();
-    if (!tokenData.access_token) {
+    let accessToken: string;
+    try {
+      accessToken = await deps.githubOAuth.exchangeCode(code, redirectUri);
+    } catch {
       return c.json({ error: "OAUTH_ERROR", message: "Failed to get access token" }, 401);
     }
 
-    // Get GitHub user info
-    const userRes = await fetch("https://api.github.com/user", {
-      headers: {
-        Authorization: `Bearer ${tokenData.access_token}`,
-        "User-Agent": "web-clipper",
-      },
-    });
-
-    const githubUser: { id: number; login: string } = await userRes.json();
-    if (!githubUser.id) {
+    let githubUser: { id: number; login: string };
+    try {
+      githubUser = await deps.githubOAuth.fetchUser(accessToken);
+    } catch {
       return c.json({ error: "OAUTH_ERROR", message: "Failed to get GitHub user info" }, 401);
     }
 
     // Process OAuth callback
-    const deps = c.get("deps");
     const result = await githubOAuthCallback({
       userRepo: deps.userRepo,
       sessionRepo: deps.sessionRepo,

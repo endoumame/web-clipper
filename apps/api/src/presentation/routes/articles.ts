@@ -10,8 +10,7 @@ import {
 } from "@web-clipper/shared";
 import type { AppEnv } from "../types.js";
 import { domainErrorToResponse, domainErrorToStatus } from "../middleware/error-handler.js";
-import { clipArticle, updateArticle, deleteArticle } from "../../application/commands/mod.js";
-import { listArticles, getArticle } from "../../application/queries/mod.js";
+import { clipArticle, updateArticle, deleteArticle } from "../../application/commands/index.js";
 
 const toArticleResponse = (article: {
   id: string;
@@ -219,7 +218,7 @@ export const articleRoutes = new OpenAPIHono<AppEnv>()
   .openapi(listArticlesRoute, async (c) => {
     const deps = c.get("deps");
     const query = c.req.valid("query");
-    const result = await listArticles(deps.db)({
+    const result = await deps.articleQuery.list({
       source: query.source,
       tagName: query.tagId,
       isRead: query.isRead,
@@ -247,7 +246,7 @@ export const articleRoutes = new OpenAPIHono<AppEnv>()
   .openapi(getArticleRoute, async (c) => {
     const deps = c.get("deps");
     const { id } = c.req.valid("param");
-    const article = await getArticle(deps.db)(id);
+    const article = await deps.articleQuery.getById(id);
     if (!article) {
       return c.json({ error: "ARTICLE_NOT_FOUND", message: `Not found: ${id}` }, 404);
     }

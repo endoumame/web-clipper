@@ -1,31 +1,12 @@
 import { desc, eq, like, and, lt } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { articles, tags, articleTags } from "../../infrastructure/persistence/schema.js";
-
-type ListArticlesParams = {
-  readonly source?: string;
-  readonly tagName?: string;
-  readonly isRead?: boolean;
-  readonly search?: string;
-  readonly cursor?: string;
-  readonly limit?: number;
-};
-
-type ArticleListItem = {
-  readonly id: string;
-  readonly url: string;
-  readonly title: string;
-  readonly description: string | null;
-  readonly source: string;
-  readonly ogImageUrl: string | null;
-  readonly isRead: boolean;
-  readonly createdAt: Date;
-};
-
-type ListArticlesResult = {
-  readonly articles: readonly ArticleListItem[];
-  readonly nextCursor: string | null;
-};
+import type {
+  ArticleQueryService,
+  ListArticlesParams,
+  ListArticlesResult,
+  ArticleDetail,
+} from "../../application/queries/article-query-service.js";
+import { articles, tags, articleTags } from "./schema.js";
 
 const articleColumns = {
   id: articles.id,
@@ -38,9 +19,8 @@ const articleColumns = {
   createdAt: articles.createdAt,
 } as const;
 
-export const listArticles =
-  (db: DrizzleD1Database) =>
-  async (params: ListArticlesParams): Promise<ListArticlesResult> => {
+export const createD1ArticleQueryService = (db: DrizzleD1Database): ArticleQueryService => ({
+  list: async (params: ListArticlesParams): Promise<ListArticlesResult> => {
     const limit = params.limit ?? 20;
 
     const conditions = [];
@@ -86,4 +66,22 @@ export const listArticles =
       articles: items,
       nextCursor: hasNext ? items[items.length - 1].id : null,
     };
-  };
+  },
+
+  getById: async (id: string): Promise<ArticleDetail | null> => {
+    const row = await db.select().from(articles).where(eq(articles.id, id)).get();
+    if (!row) return null;
+
+    const tagRows = await db
+      .select({ name: tags.name })
+      .from(articleTags)
+      .innerJoin(tags, eq(articleTags.tagId, tags.id))
+      .where(eq(articleTags.articleId, id))
+      .all();
+
+    return {
+      ...row,
+      tags: tagRows.map((t) => t.name),
+    };
+  },
+});

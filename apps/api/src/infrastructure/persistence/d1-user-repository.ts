@@ -4,7 +4,7 @@ import type { DrizzleD1Database } from "drizzle-orm/d1";
 import type { UserRepository, User, UserId } from "../../domain/user/index.js";
 import type { DomainError } from "../../domain/shared/index.js";
 import { users } from "./schema.js";
-import { userToDomain, userToPersistence } from "./mappers.js";
+import { userToDomain, userToPersistence } from "./user-mapper.js";
 
 const toStorageError = (error: unknown): DomainError => ({
   type: "STORAGE_ERROR",
