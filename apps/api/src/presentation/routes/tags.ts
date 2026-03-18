@@ -7,8 +7,7 @@ import {
 } from "@web-clipper/shared";
 import type { AppEnv } from "../types.js";
 import { domainErrorToResponse, domainErrorToStatus } from "../middleware/error-handler.js";
-import { createTag, deleteTag } from "../../application/commands/mod.js";
-import { listTags } from "../../application/queries/mod.js";
+import { createTag, deleteTag } from "../../application/commands/index.js";
 
 // --- Route definitions ---
 
@@ -102,7 +101,7 @@ const deleteTagRoute = createRoute({
 export const tagRoutes = new OpenAPIHono<AppEnv>()
   .openapi(listTagsRoute, async (c) => {
     const deps = c.get("deps");
-    const result = await listTags(deps.db)();
+    const result = await deps.tagQuery.list();
     return c.json(
       {
         tags: result.map((t) => ({

@@ -9,6 +9,9 @@ import { createFetchMetadataFetcher } from "./infrastructure/services/fetch-meta
 import { createD1UserRepository } from "./infrastructure/persistence/d1-user-repository.js";
 import { createD1SessionRepository } from "./infrastructure/persistence/d1-session-repository.js";
 import { createWebCryptoPasswordHasher } from "./infrastructure/services/web-crypto-password-hasher.js";
+import { createGitHubOAuthClient } from "./infrastructure/services/github-oauth-client.js";
+import { createD1ArticleQueryService } from "./infrastructure/persistence/d1-article-query-service.js";
+import { createD1TagQueryService } from "./infrastructure/persistence/d1-tag-query-service.js";
 import { sessionAuth } from "./presentation/middleware/auth.js";
 import { healthRoutes } from "./presentation/routes/health.js";
 import { authRoutes } from "./presentation/routes/auth.js";
@@ -42,6 +45,9 @@ base.use("/api/*", async (c, next) => {
     sessionRepo: createD1SessionRepository(db),
     passwordHasher: createWebCryptoPasswordHasher(),
     tagRepo: createD1TagRepository(db),
+    githubOAuth: createGitHubOAuthClient(c.env.GITHUB_CLIENT_ID, c.env.GITHUB_CLIENT_SECRET),
+    articleQuery: createD1ArticleQueryService(db),
+    tagQuery: createD1TagQueryService(db),
     db,
   });
   await next();
