@@ -275,7 +275,7 @@ onMounted(() => {
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0 flex-1">
               <h1
-                class="text-foreground font-semibold text-base font-body line-clamp-2"
+                class="text-foreground font-semibold text-base font-body"
                 style="view-transition-name: article-title"
               >
                 {{ transitionArticle.title }}
@@ -389,14 +389,14 @@ onMounted(() => {
             <div class="min-w-0 flex-1">
               <!-- タイトル -->
               <h1
-                class="text-foreground font-semibold text-base font-body line-clamp-2"
+                class="text-foreground font-semibold text-base font-body"
                 style="view-transition-name: article-title"
               >
                 {{ article.title }}
               </h1>
 
               <!-- ドメインURL -->
-              <span class="mt-1 text-xs text-muted block truncate">
+              <span class="mt-1 text-xs text-muted block break-all">
                 {{ extractDomain(article.url) }}
               </span>
             </div>
