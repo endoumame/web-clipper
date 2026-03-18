@@ -1,8 +1,7 @@
 import { ok, type ResultAsync } from "neverthrow";
-import type { UserRepository, SessionRepository } from "../../domain/ports/mod.js";
-import { SessionIdVO } from "../../domain/values/mod.js";
-import { SessionEntity } from "../../domain/entities/mod.js";
-import type { DomainError } from "../../domain/errors.js";
+import type { UserRepository } from "../../domain/user/index.js";
+import { type SessionRepository, SessionIdVO, SessionEntity } from "../../domain/session/index.js";
+import type { DomainError } from "../../domain/shared/index.js";
 
 type GetAuthStatusDeps = {
   readonly userRepo: UserRepository;

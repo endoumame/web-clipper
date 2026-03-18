@@ -1,4 +1,4 @@
-import type { UserId } from "../values/user-id.js";
+import type { UserId } from "./user-id.js";
 
 export type User = {
   readonly id: UserId;

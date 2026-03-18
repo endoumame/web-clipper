@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ok, err, type Result } from "neverthrow";
-import type { DomainError } from "../errors.js";
+import type { DomainError } from "../shared/errors.js";
 
 const SessionIdSchema = z.string().uuid().brand<"SessionId">();
 export type SessionId = z.infer<typeof SessionIdSchema>;

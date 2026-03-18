@@ -1,7 +1,7 @@
 import type { ResultAsync } from "neverthrow";
-import type { Session } from "../entities/session.js";
-import type { SessionId } from "../values/session-id.js";
-import type { DomainError } from "../errors.js";
+import type { Session } from "./session.js";
+import type { SessionId } from "./session-id.js";
+import type { DomainError } from "../shared/errors.js";
 
 export type SessionRepository = {
   readonly findById: (id: SessionId) => ResultAsync<Session | null, DomainError>;

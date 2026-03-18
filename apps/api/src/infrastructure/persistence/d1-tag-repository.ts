@@ -1,11 +1,8 @@
 import { ResultAsync } from "neverthrow";
 import { eq } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import type { TagRepository } from "../../domain/ports/mod.js";
-import type { Tag } from "../../domain/entities/mod.js";
-import type { TagName } from "../../domain/values/tag-name.js";
-import { TagNameVO } from "../../domain/values/tag-name.js";
-import type { DomainError } from "../../domain/errors.js";
+import { TagNameVO, type TagRepository, type Tag, type TagName } from "../../domain/tag/index.js";
+import type { DomainError } from "../../domain/shared/index.js";
 import { tags } from "./schema.js";
 
 const toStorageError = (error: unknown): DomainError => ({

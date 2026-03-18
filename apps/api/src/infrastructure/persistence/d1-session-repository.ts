@@ -1,10 +1,8 @@
 import { ResultAsync } from "neverthrow";
 import { eq, lt } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import type { SessionRepository } from "../../domain/ports/mod.js";
-import type { Session } from "../../domain/entities/mod.js";
-import type { SessionId } from "../../domain/values/mod.js";
-import type { DomainError } from "../../domain/errors.js";
+import type { SessionRepository, Session, SessionId } from "../../domain/session/index.js";
+import type { DomainError } from "../../domain/shared/index.js";
 import { sessions } from "./schema.js";
 import { sessionToDomain, sessionToPersistence } from "./mappers.js";
 

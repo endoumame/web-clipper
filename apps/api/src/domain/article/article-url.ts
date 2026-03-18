@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ok, err, type Result } from "neverthrow";
-import type { DomainError } from "../errors.js";
+import type { DomainError } from "../shared/errors.js";
 
 const ArticleUrlSchema = z.string().url().brand<"ArticleUrl">();
 export type ArticleUrl = z.infer<typeof ArticleUrlSchema>;

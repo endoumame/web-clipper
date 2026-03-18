@@ -2,10 +2,13 @@ import { ResultAsync } from "neverthrow";
 import { eq, inArray } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { nanoid } from "nanoid";
-import type { ArticleRepository } from "../../domain/ports/mod.js";
-import type { Article } from "../../domain/entities/mod.js";
-import type { ArticleId, ArticleUrl } from "../../domain/values/mod.js";
-import type { DomainError } from "../../domain/errors.js";
+import type {
+  ArticleRepository,
+  Article,
+  ArticleId,
+  ArticleUrl,
+} from "../../domain/article/index.js";
+import type { DomainError } from "../../domain/shared/index.js";
 import { articles, tags, articleTags } from "./schema.js";
 import { toDomain, toPersistence } from "./mappers.js";
 

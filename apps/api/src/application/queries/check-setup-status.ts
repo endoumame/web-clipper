@@ -1,6 +1,6 @@
 import type { ResultAsync } from "neverthrow";
-import type { UserRepository } from "../../domain/ports/mod.js";
-import type { DomainError } from "../../domain/errors.js";
+import type { UserRepository } from "../../domain/user/index.js";
+import type { DomainError } from "../../domain/shared/index.js";
 
 type CheckSetupStatusDeps = {
   readonly userRepo: UserRepository;

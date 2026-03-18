@@ -1,7 +1,7 @@
 import type { ResultAsync } from "neverthrow";
-import type { Tag } from "../entities/tag.js";
-import type { TagName } from "../values/tag-name.js";
-import type { DomainError } from "../errors.js";
+import type { Tag } from "./tag.js";
+import type { TagName } from "./tag-name.js";
+import type { DomainError } from "../shared/errors.js";
 
 export type TagRepository = {
   readonly findByName: (name: TagName) => ResultAsync<Tag | null, DomainError>;

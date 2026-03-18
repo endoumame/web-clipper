@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { ok, err, type Result } from "neverthrow";
 import { nanoid } from "nanoid";
-import type { DomainError } from "../errors.js";
+import type { DomainError } from "../shared/errors.js";
 
 const UserIdSchema = z.string().min(1).brand<"UserId">();
 export type UserId = z.infer<typeof UserIdSchema>;

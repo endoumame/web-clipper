@@ -1,9 +1,7 @@
 import { nanoid } from "nanoid";
 import { err, type ResultAsync } from "neverthrow";
-import type { TagRepository } from "../../domain/ports/mod.js";
-import { TagNameVO } from "../../domain/values/tag-name.js";
-import { TagEntity, type Tag } from "../../domain/entities/mod.js";
-import type { DomainError } from "../../domain/errors.js";
+import { type TagRepository, TagNameVO, TagEntity, type Tag } from "../../domain/tag/index.js";
+import type { DomainError } from "../../domain/shared/index.js";
 
 type CreateTagDeps = {
   readonly tagRepo: TagRepository;

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ok, err, type Result } from "neverthrow";
-import type { DomainError } from "../errors.js";
+import type { DomainError } from "../shared/errors.js";
 
 const TagNameSchema = z.string().trim().min(1).max(50).brand<"TagName">();
 export type TagName = z.infer<typeof TagNameSchema>;

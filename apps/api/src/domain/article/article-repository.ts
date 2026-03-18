@@ -1,7 +1,8 @@
 import type { ResultAsync } from "neverthrow";
-import type { Article } from "../entities/mod.js";
-import type { ArticleId, ArticleUrl } from "../values/mod.js";
-import type { DomainError } from "../errors.js";
+import type { Article } from "./article.js";
+import type { ArticleId } from "./article-id.js";
+import type { ArticleUrl } from "./article-url.js";
+import type { DomainError } from "../shared/errors.js";
 
 export type ArticleRepository = {
   readonly findById: (id: ArticleId) => ResultAsync<Article | null, DomainError>;

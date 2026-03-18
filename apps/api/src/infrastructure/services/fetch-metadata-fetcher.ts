@@ -1,7 +1,6 @@
 import { ResultAsync } from "neverthrow";
-import type { MetadataFetcher, ArticleMetadata } from "../../domain/ports/mod.js";
-import type { ArticleUrl } from "../../domain/values/mod.js";
-import type { DomainError } from "../../domain/errors.js";
+import type { MetadataFetcher, ArticleMetadata, ArticleUrl } from "../../domain/article/index.js";
+import type { DomainError } from "../../domain/shared/index.js";
 
 const decodeHtmlEntities = (text: string): string =>
   text

@@ -1,8 +1,7 @@
 import type { Context, Next } from "hono";
 import { getCookie } from "hono/cookie";
 import type { AppEnv } from "../types.js";
-import { SessionEntity } from "../../domain/entities/mod.js";
-import { SessionIdVO } from "../../domain/values/mod.js";
+import { SessionEntity, SessionIdVO } from "../../domain/session/index.js";
 import { SESSION_COOKIE_NAME } from "./cookie.js";
 
 export const sessionAuth = async (c: Context<AppEnv>, next: Next) => {

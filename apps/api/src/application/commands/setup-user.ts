@@ -1,8 +1,18 @@
 import { ok, err, type ResultAsync } from "neverthrow";
-import type { UserRepository, SessionRepository, PasswordHasher } from "../../domain/ports/mod.js";
-import { UserEntity, type User, SessionEntity, type Session } from "../../domain/entities/mod.js";
-import { UserIdVO, SessionIdVO } from "../../domain/values/mod.js";
-import type { DomainError } from "../../domain/errors.js";
+import {
+  type UserRepository,
+  type PasswordHasher,
+  UserEntity,
+  UserIdVO,
+  type User,
+} from "../../domain/user/index.js";
+import {
+  type SessionRepository,
+  SessionEntity,
+  SessionIdVO,
+  type Session,
+} from "../../domain/session/index.js";
+import type { DomainError } from "../../domain/shared/index.js";
 
 type SetupUserDeps = {
   readonly userRepo: UserRepository;
