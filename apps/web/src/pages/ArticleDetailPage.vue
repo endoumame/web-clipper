@@ -32,19 +32,60 @@ const togglingRead = ref(false);
 // 削除
 const deleting = ref(false);
 
-const sourceColors: Record<Article["source"], string> = {
-  twitter: "bg-info/20 text-info",
-  qiita: "bg-success/20 text-success",
-  zenn: "bg-purple/20 text-purple",
-  hatena: "bg-error/20 text-error",
-  github: "bg-foreground/20 text-foreground",
-  classmethod: "bg-warning/20 text-warning",
-  medium: "bg-foreground/20 text-foreground",
-  note: "bg-success/20 text-success",
-  devto: "bg-foreground/20 text-foreground",
-  stackoverflow: "bg-warning/20 text-warning",
-  other: "bg-muted/20 text-muted",
+const sourceBadgeStyles: Record<string, string> = {
+  twitter: "bg-info/15 text-info",
+  qiita: "bg-success/15 text-success",
+  zenn: "bg-purple/15 text-purple",
+  hatena: "bg-error/15 text-error",
+  github: "bg-foreground/15 text-foreground",
+  classmethod: "bg-warning/15 text-warning",
+  medium: "bg-foreground/15 text-foreground",
+  note: "bg-success/15 text-success",
+  devto: "bg-foreground/15 text-foreground",
+  stackoverflow: "bg-warning/15 text-warning",
+  other: "bg-muted/15 text-muted",
 };
+
+const sourceLabels: Record<string, string> = {
+  twitter: "Twitter",
+  qiita: "Qiita",
+  zenn: "Zenn",
+  hatena: "はてな",
+  github: "GitHub",
+  classmethod: "DevelopersIO",
+  medium: "Medium",
+  note: "note",
+  devto: "DEV",
+  stackoverflow: "Stack Overflow",
+  other: "その他",
+};
+
+function extractDomain(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+}
+
+function formatRelativeDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffHour = Math.floor(diffMs / 3600000);
+  const diffDay = Math.floor(diffMs / 86400000);
+
+  if (diffMin < 1) return "たった今";
+  if (diffMin < 60) return `${diffMin}分前`;
+  if (diffHour < 24) return `${diffHour}時間前`;
+  if (diffDay < 7) return `${diffDay}日前`;
+
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}/${m}/${d}`;
+}
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleString("ja-JP");
@@ -226,21 +267,39 @@ onMounted(() => {
           v-if="transitionArticle.ogImageUrl"
           :src="transitionArticle.ogImageUrl"
           :alt="transitionArticle.title"
-          class="w-full object-contain bg-black/20 rounded-t-xl"
+          class="w-full max-h-72 object-contain bg-black/20 rounded-t-xl"
           style="view-transition-name: article-image"
         />
-        <div class="p-6 space-y-4">
-          <div class="flex gap-2">
-            <div class="skeleton h-6 w-20 rounded-full" />
+        <div class="p-5">
+          <!-- 一覧カードと同じレイアウト -->
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0 flex-1">
+              <h1
+                class="text-foreground font-semibold text-base font-body line-clamp-2"
+                style="view-transition-name: article-title"
+              >
+                {{ transitionArticle.title }}
+              </h1>
+              <div class="skeleton h-3 w-1/3 rounded mt-1" />
+            </div>
+            <span class="flex-shrink-0 mt-1.5">
+              <span class="inline-block w-2.5 h-2.5 rounded-full bg-muted/30" />
+            </span>
           </div>
-          <h1
-            class="font-display text-2xl font-bold text-foreground leading-tight"
-            style="view-transition-name: article-title"
-          >
-            {{ transitionArticle.title }}
-          </h1>
-          <div class="skeleton h-4 w-1/2" />
-          <div class="skeleton h-16 w-full" />
+          <div class="mt-3 flex flex-wrap items-center gap-2">
+            <span
+              class="badge-base px-2 py-0.5 text-xs font-medium rounded-full"
+              :class="sourceBadgeStyles[transitionArticle.source]"
+            >
+              {{ sourceLabels[transitionArticle.source] }}
+            </span>
+            <div class="skeleton h-5 w-20 rounded-full ml-auto" />
+          </div>
+          <!-- 詳細部分のスケルトン -->
+          <div class="mt-5 pt-4 border-t border-border/50">
+            <div class="skeleton h-4 w-1/2" />
+            <div class="skeleton h-16 w-full mt-4" />
+          </div>
         </div>
       </div>
       <div class="card-base p-5">
@@ -254,14 +313,25 @@ onMounted(() => {
       <div class="skeleton h-5 w-24" />
       <div class="card-base overflow-hidden">
         <div class="skeleton h-52 rounded-none" />
-        <div class="p-6 space-y-4">
-          <div class="flex gap-2">
-            <div class="skeleton h-6 w-20 rounded-full" />
-            <div class="skeleton h-6 w-16 rounded-full" />
+        <div class="p-5">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0 flex-1 space-y-1">
+              <div class="skeleton h-5 w-3/4 rounded" />
+              <div class="skeleton h-3 w-1/3 rounded" />
+            </div>
+            <span class="flex-shrink-0 mt-1.5">
+              <div class="skeleton w-2.5 h-2.5 rounded-full" />
+            </span>
           </div>
-          <div class="skeleton h-8 w-3/4" />
-          <div class="skeleton h-4 w-1/2" />
-          <div class="skeleton h-16 w-full" />
+          <div class="mt-3 flex flex-wrap items-center gap-2">
+            <div class="skeleton h-5 w-16 rounded-full" />
+            <div class="skeleton h-5 w-12 rounded-full" />
+            <div class="skeleton h-5 w-20 rounded-full ml-auto" />
+          </div>
+          <div class="mt-5 pt-4 border-t border-border/50">
+            <div class="skeleton h-4 w-1/2" />
+            <div class="skeleton h-16 w-full mt-4" />
+          </div>
         </div>
       </div>
       <div class="card-base p-5">
@@ -306,71 +376,106 @@ onMounted(() => {
           v-if="article.ogImageUrl"
           :src="article.ogImageUrl"
           :alt="article.title"
-          class="w-full object-contain bg-black/20 rounded-t-xl"
+          class="w-full max-h-72 object-contain bg-black/20 rounded-t-xl"
           style="view-transition-name: article-image"
         />
 
-        <div class="p-6">
-          <!-- ソースバッジ + 既読状態 -->
-          <div class="flex items-center gap-2 mb-4">
-            <span class="badge-base rounded-full" :class="sourceColors[article.source]">
-              {{ article.source }}
-            </span>
-            <span
-              class="badge-base rounded-full"
-              :class="article.isRead ? 'bg-success/15 text-success' : 'bg-accent/15 text-accent'"
-            >
-              {{ article.isRead ? "既読" : "未読" }}
+        <div class="p-5">
+          <!-- 上部: 一覧カードと同じレイアウト -->
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0 flex-1">
+              <!-- タイトル -->
+              <h1
+                class="text-foreground font-semibold text-base font-body line-clamp-2"
+                style="view-transition-name: article-title"
+              >
+                {{ article.title }}
+              </h1>
+
+              <!-- ドメインURL -->
+              <span class="mt-1 text-xs text-muted block truncate">
+                {{ extractDomain(article.url) }}
+              </span>
+            </div>
+
+            <!-- 既読/未読インジケータ -->
+            <span class="flex-shrink-0 mt-1.5" :title="article.isRead ? '既読' : '未読'">
+              <span
+                v-if="article.isRead"
+                class="inline-block w-2.5 h-2.5 rounded-full bg-muted/30"
+              />
+              <span
+                v-else
+                class="inline-block w-2.5 h-2.5 rounded-full bg-accent shadow-sm shadow-accent/50"
+              />
             </span>
           </div>
 
-          <!-- タイトル -->
-          <h1
-            class="font-display text-2xl font-bold text-foreground leading-tight"
-            style="view-transition-name: article-title"
-          >
-            {{ article.title }}
-          </h1>
-
-          <!-- 外部リンク -->
-          <a
-            :href="article.url"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="mt-3 inline-flex items-center gap-1.5 text-sm text-info break-all hover:underline font-body"
-          >
-            {{ article.url }}
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="flex-shrink-0"
+          <!-- メタ情報 -->
+          <div class="mt-3 flex flex-wrap items-center gap-2">
+            <!-- ソースバッジ -->
+            <span
+              class="badge-base px-2 py-0.5 text-xs font-medium rounded-full"
+              :class="sourceBadgeStyles[article.source]"
             >
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-              <polyline points="15 3 21 3 21 9" />
-              <line x1="10" y1="14" x2="21" y2="3" />
-            </svg>
-          </a>
+              {{ sourceLabels[article.source] }}
+            </span>
 
-          <!-- 説明文 -->
-          <p
-            v-if="article.description"
-            class="mt-5 text-sm leading-relaxed text-foreground/70 font-body"
-          >
-            {{ article.description }}
-          </p>
+            <!-- タグ -->
+            <span
+              v-for="tag in article.tags"
+              :key="tag"
+              class="bg-surface-2 text-muted text-xs rounded-full px-2.5 py-0.5"
+            >
+              {{ tag }}
+            </span>
 
-          <!-- 日時 -->
-          <div
-            class="mt-5 pt-4 border-t border-border/50 flex gap-6 text-xs text-muted/60 font-body"
-          >
-            <span>作成: {{ formatDate(article.createdAt) }}</span>
-            <span>更新: {{ formatDate(article.updatedAt) }}</span>
+            <!-- 日付 -->
+            <span class="text-muted/70 text-xs ml-auto font-body">
+              {{ formatRelativeDate(article.createdAt) }}
+            </span>
+          </div>
+
+          <!-- 下部: 詳細画面専用の項目 -->
+          <div class="mt-5 pt-4 border-t border-border/50">
+            <!-- 外部リンク -->
+            <a
+              :href="article.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-1.5 text-sm text-info break-all hover:underline font-body"
+            >
+              {{ article.url }}
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="flex-shrink-0"
+              >
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+            </a>
+
+            <!-- 説明文 -->
+            <p
+              v-if="article.description"
+              class="mt-4 text-sm leading-relaxed text-foreground/70 font-body"
+            >
+              {{ article.description }}
+            </p>
+
+            <!-- 日時 -->
+            <div class="mt-4 flex gap-6 text-xs text-muted/60 font-body">
+              <span>作成: {{ formatDate(article.createdAt) }}</span>
+              <span>更新: {{ formatDate(article.updatedAt) }}</span>
+            </div>
           </div>
         </div>
       </div>
