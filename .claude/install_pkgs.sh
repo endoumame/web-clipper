@@ -27,3 +27,4 @@ pip3 install uv --quiet
 # -------------------------------------------------------
 cd "$CLAUDE_PROJECT_DIR"
 pnpm install
+pnpm build
