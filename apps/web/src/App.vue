@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from "vue-router";
 import { useAuth } from "@/composables/useAuth";
+import { useHideOnScroll } from "@/composables/useHideOnScroll";
 
 const auth = useAuth();
+const { isHidden } = useHideOnScroll();
 
 async function handleLogout() {
   await auth.logout();
@@ -25,7 +27,8 @@ async function handleLogout() {
   <div v-else class="min-h-screen bg-surface-0 font-body text-foreground">
     <header
       v-if="auth.isAuthenticated.value"
-      class="sticky top-0 z-50 bg-surface-0/80 backdrop-blur-xl border-b border-border/60"
+      class="sticky top-0 z-50 bg-surface-0/80 backdrop-blur-xl border-b border-border/60 transition-transform duration-300"
+      :class="{ '-translate-y-full': isHidden }"
     >
       <!-- Decorative golden top bar -->
       <div class="h-0.5 w-full bg-gradient-to-r from-accent/0 via-accent to-accent/0" />
