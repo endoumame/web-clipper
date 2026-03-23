@@ -26,52 +26,39 @@ export const domainErrorToStatus = <S extends DomainStatusCode>(error: DomainErr
   // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Hono requires exact status code literals; centralizing the only unavoidable cast here
   STATUS_MAP[error.type] as S;
 
-const MESSAGE_MAP: Record<DomainError["type"], (error: DomainError & { type: string }) => string> =
-  {
-    INVALID_URL: (e) => (e as Extract<DomainError, { type: "INVALID_URL" }>).message,
-    INVALID_TAG_NAME: (e) => (e as Extract<DomainError, { type: "INVALID_TAG_NAME" }>).message,
-    INVALID_ARTICLE_ID: (e) => (e as Extract<DomainError, { type: "INVALID_ARTICLE_ID" }>).message,
-    INVALID_USER_ID: (e) => (e as Extract<DomainError, { type: "INVALID_USER_ID" }>).message,
-    INVALID_SESSION_ID: (e) => (e as Extract<DomainError, { type: "INVALID_SESSION_ID" }>).message,
-    INVALID_CREDENTIALS: (e) =>
-      (e as Extract<DomainError, { type: "INVALID_CREDENTIALS" }>).message,
-    SESSION_NOT_FOUND: (e) => (e as Extract<DomainError, { type: "SESSION_NOT_FOUND" }>).message,
-    SESSION_EXPIRED: (e) => (e as Extract<DomainError, { type: "SESSION_EXPIRED" }>).message,
-    SETUP_ALREADY_COMPLETED: (e) =>
-      (e as Extract<DomainError, { type: "SETUP_ALREADY_COMPLETED" }>).message,
-    OAUTH_ERROR: (e) => (e as Extract<DomainError, { type: "OAUTH_ERROR" }>).message,
-    ARTICLE_NOT_FOUND: (e) => {
-      const err = e as Extract<DomainError, { type: "ARTICLE_NOT_FOUND" }>;
-      return `Article not found: ${err.id}`;
-    },
-    TAG_NOT_FOUND: (e) => {
-      const err = e as Extract<DomainError, { type: "TAG_NOT_FOUND" }>;
-      return `Tag not found: ${err.id}`;
-    },
-    ARTICLE_ALREADY_EXISTS: (e) => {
-      const err = e as Extract<DomainError, { type: "ARTICLE_ALREADY_EXISTS" }>;
-      return `Article already exists: ${err.url}`;
-    },
-    TAG_ALREADY_EXISTS: (e) => {
-      const err = e as Extract<DomainError, { type: "TAG_ALREADY_EXISTS" }>;
-      return `Tag already exists: ${err.name}`;
-    },
-    METADATA_FETCH_FAILED: (e) => {
-      const err = e as Extract<DomainError, { type: "METADATA_FETCH_FAILED" }>;
-      return `Failed to fetch metadata from ${err.url}: ${err.cause}`;
-    },
-    SUMMARY_GENERATION_FAILED: (e) => {
-      const err = e as Extract<DomainError, { type: "SUMMARY_GENERATION_FAILED" }>;
-      return `AI summary generation failed: ${err.cause}`;
-    },
-    STORAGE_ERROR: (e) => {
-      const err = e as Extract<DomainError, { type: "STORAGE_ERROR" }>;
-      const cause = err.cause instanceof Error ? err.cause.message : String(err.cause);
+const toMessage = (error: DomainError): string => {
+  switch (error.type) {
+    case "INVALID_URL":
+    case "INVALID_TAG_NAME":
+    case "INVALID_ARTICLE_ID":
+    case "INVALID_USER_ID":
+    case "INVALID_SESSION_ID":
+    case "INVALID_CREDENTIALS":
+    case "SESSION_NOT_FOUND":
+    case "SESSION_EXPIRED":
+    case "SETUP_ALREADY_COMPLETED":
+    case "OAUTH_ERROR":
+      return error.message;
+    case "ARTICLE_NOT_FOUND":
+      return `Article not found: ${error.id}`;
+    case "TAG_NOT_FOUND":
+      return `Tag not found: ${error.id}`;
+    case "ARTICLE_ALREADY_EXISTS":
+      return `Article already exists: ${error.url}`;
+    case "TAG_ALREADY_EXISTS":
+      return `Tag already exists: ${error.name}`;
+    case "METADATA_FETCH_FAILED":
+      return `Failed to fetch metadata from ${error.url}: ${error.cause}`;
+    case "SUMMARY_GENERATION_FAILED":
+      return `AI summary generation failed: ${error.cause}`;
+    case "STORAGE_ERROR": {
+      const cause = error.cause instanceof Error ? error.cause.message : String(error.cause);
       return `Internal storage error: ${cause}`;
-    },
-  };
+    }
+  }
+};
 
 export const domainErrorToResponse = (error: DomainError) => ({
   error: error.type,
-  message: MESSAGE_MAP[error.type](error),
+  message: toMessage(error),
 });
