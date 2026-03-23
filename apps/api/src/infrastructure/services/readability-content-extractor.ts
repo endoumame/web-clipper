@@ -25,8 +25,12 @@ export const createReadabilityContentExtractor = (): ContentExtractor => ({
           throw new Error("Failed to extract article content");
         }
 
+        // Parse article HTML via linkedom so turndown receives a DOM node
+        // instead of a string — avoids turndown's internal DOMParser which
+        // relies on the global `document` (unavailable in Workers).
+        const { document: contentDoc } = parseHTML(article.content);
         const turndown = new TurndownService({ headingStyle: "atx" });
-        const markdown = turndown.turndown(article.content);
+        const markdown = turndown.turndown(contentDoc.documentElement);
 
         return markdown;
       })(),
