@@ -3,6 +3,7 @@ import type {
   ArticleRepository,
   MetadataFetcher,
   ArticleSummarizer,
+  ContentExtractor,
 } from "../domain/article/index.js";
 import type { UserRepository, PasswordHasher } from "../domain/user/index.js";
 import type { TagRepository } from "../domain/tag/index.js";
@@ -15,6 +16,7 @@ export type Deps = {
   readonly articleRepo: ArticleRepository;
   readonly metadataFetcher: MetadataFetcher;
   readonly summarizer: ArticleSummarizer;
+  readonly contentExtractor: ContentExtractor;
   readonly userRepo: UserRepository;
   readonly sessionRepo: SessionRepository;
   readonly passwordHasher: PasswordHasher;

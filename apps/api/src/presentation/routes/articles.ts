@@ -327,7 +327,7 @@ export const articleRoutes = new OpenAPIHono<AppEnv>()
     const { id } = c.req.valid("param");
     const result = await generateSummary({
       articleRepo: deps.articleRepo,
-      metadataFetcher: deps.metadataFetcher,
+      contentExtractor: deps.contentExtractor,
       summarizer: deps.summarizer,
     })(id);
     return result.match(

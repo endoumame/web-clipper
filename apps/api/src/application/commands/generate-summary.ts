@@ -1,8 +1,8 @@
 import { err, ok, type ResultAsync } from "neverthrow";
 import {
   type ArticleRepository,
-  type MetadataFetcher,
   type ArticleSummarizer,
+  type ContentExtractor,
   type Article,
   ArticleIdVO,
   ArticleEntity,
@@ -11,7 +11,7 @@ import type { DomainError } from "../../domain/shared/index.js";
 
 type GenerateSummaryDeps = {
   readonly articleRepo: ArticleRepository;
-  readonly metadataFetcher: MetadataFetcher;
+  readonly contentExtractor: ContentExtractor;
   readonly summarizer: ArticleSummarizer;
 };
 
@@ -24,12 +24,11 @@ export const generateSummary =
         article ? ok(article) : err({ type: "ARTICLE_NOT_FOUND" as const, id }),
       )
       .andThen((article) =>
-        deps.metadataFetcher.fetch(article.url).map((metadata) => ({ article, metadata })),
+        deps.contentExtractor.extract(article.url).map((content) => ({ article, content })),
       )
-      .andThen(({ article, metadata }) => {
-        const textContent = [metadata.title, metadata.description].filter(Boolean).join("\n\n");
-        return deps.summarizer
-          .summarize(textContent)
-          .map((summary) => ArticleEntity.updateAiSummary(article, summary));
-      })
+      .andThen(({ article, content }) =>
+        deps.summarizer
+          .summarize(content)
+          .map((summary) => ArticleEntity.updateAiSummary(article, summary)),
+      )
       .andThen((article) => deps.articleRepo.save(article));
