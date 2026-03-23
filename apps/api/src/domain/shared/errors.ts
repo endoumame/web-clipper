@@ -18,4 +18,5 @@ export type DomainError =
   | { readonly type: "SETUP_ALREADY_COMPLETED"; readonly message: string }
   | { readonly type: "OAUTH_ERROR"; readonly message: string }
   | { readonly type: "INVALID_USER_ID"; readonly message: string }
-  | { readonly type: "INVALID_SESSION_ID"; readonly message: string };
+  | { readonly type: "INVALID_SESSION_ID"; readonly message: string }
+  | { readonly type: "SUMMARY_GENERATION_FAILED"; readonly cause: string };

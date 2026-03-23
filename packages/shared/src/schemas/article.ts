@@ -27,6 +27,7 @@ export const ArticleResponseSchema = z.object({
   source: SourceSchema,
   ogImageUrl: z.string().nullable(),
   memo: z.string().nullable(),
+  aiSummary: z.string().nullable(),
   isRead: z.boolean(),
   tags: z.array(z.string()),
   createdAt: z.string(), // ISO 8601

@@ -7,3 +7,4 @@ export { setupUser } from "./setup-user.js";
 export { login } from "./login.js";
 export { logout } from "./logout.js";
 export { githubOAuthCallback } from "./github-oauth-callback.js";
+export { generateSummary } from "./generate-summary.js";

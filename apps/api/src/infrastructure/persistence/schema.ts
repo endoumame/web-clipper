@@ -8,6 +8,7 @@ export const articles = sqliteTable("articles", {
   source: text("source").notNull(),
   ogImageUrl: text("og_image_url"),
   memo: text("memo"),
+  aiSummary: text("ai_summary"),
   isRead: integer("is_read", { mode: "boolean" }).notNull().default(false),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),

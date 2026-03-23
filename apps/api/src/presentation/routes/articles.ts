@@ -10,7 +10,12 @@ import {
 } from "@web-clipper/shared";
 import type { AppEnv } from "../types.js";
 import { domainErrorToResponse, domainErrorToStatus } from "../middleware/error-handler.js";
-import { clipArticle, updateArticle, deleteArticle } from "../../application/commands/index.js";
+import {
+  clipArticle,
+  updateArticle,
+  deleteArticle,
+  generateSummary,
+} from "../../application/commands/index.js";
 
 const toArticleResponse = (article: {
   id: string;
@@ -20,6 +25,7 @@ const toArticleResponse = (article: {
   source: string;
   ogImageUrl: string | null;
   memo: string | null;
+  aiSummary: string | null;
   isRead: boolean;
   tags: readonly string[];
   createdAt: Date;
@@ -32,6 +38,7 @@ const toArticleResponse = (article: {
   source: SourceSchema.parse(article.source),
   ogImageUrl: article.ogImageUrl,
   memo: article.memo,
+  aiSummary: article.aiSummary,
   isRead: article.isRead,
   tags: [...article.tags],
   createdAt: article.createdAt.toISOString(),
@@ -187,6 +194,44 @@ const updateArticleRoute = createRoute({
   },
 });
 
+const generateSummaryRoute = createRoute({
+  method: "post",
+  path: "/api/articles/{id}/summary",
+  tags: ["Articles"],
+  summary: "Generate AI summary for an article",
+  request: {
+    params: z.object({
+      id: z.string().openapi({ description: "Article ID" }),
+    }),
+  },
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: ArticleResponseSchema.openapi("ArticleSummaryResponse"),
+        },
+      },
+      description: "Summary generated",
+    },
+    404: {
+      content: {
+        "application/json": {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: "Article not found",
+    },
+    502: {
+      content: {
+        "application/json": {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: "Summary generation failed",
+    },
+  },
+});
+
 const deleteArticleRoute = createRoute({
   method: "delete",
   path: "/api/articles/{id}",
@@ -231,6 +276,7 @@ export const articleRoutes = new OpenAPIHono<AppEnv>()
         articles: result.articles.map((a) => ({
           ...a,
           memo: null,
+          aiSummary: null,
           tags: [],
           source: SourceSchema.parse(a.source),
           updatedAt: a.createdAt.toISOString(),
@@ -274,6 +320,19 @@ export const articleRoutes = new OpenAPIHono<AppEnv>()
     return result.match(
       (article) => c.json(toArticleResponse(article), 200),
       (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<400 | 404>(error)),
+    );
+  })
+  .openapi(generateSummaryRoute, async (c) => {
+    const deps = c.get("deps");
+    const { id } = c.req.valid("param");
+    const result = await generateSummary({
+      articleRepo: deps.articleRepo,
+      metadataFetcher: deps.metadataFetcher,
+      summarizer: deps.summarizer,
+    })(id);
+    return result.match(
+      (article) => c.json(toArticleResponse(article), 200),
+      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<404 | 502>(error)),
     );
   })
   .openapi(deleteArticleRoute, async (c) => {

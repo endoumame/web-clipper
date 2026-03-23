@@ -31,6 +31,7 @@ export type ArticleDetail = {
   readonly source: string;
   readonly ogImageUrl: string | null;
   readonly memo: string | null;
+  readonly aiSummary: string | null;
   readonly isRead: boolean;
   readonly tags: readonly string[];
   readonly createdAt: Date;
