@@ -15,6 +15,7 @@ const STATUS_MAP = {
   SESSION_NOT_FOUND: 401,
   SESSION_EXPIRED: 401,
   METADATA_FETCH_FAILED: 502,
+  SUMMARY_GENERATION_FAILED: 502,
   OAUTH_ERROR: 401,
   STORAGE_ERROR: 500,
 } as const satisfies Record<DomainError["type"], number>;
@@ -30,11 +31,13 @@ export const domainErrorToResponse = (error: DomainError) => ({
   message:
     "message" in error
       ? error.message
-      : "url" in error
-        ? `Failed to fetch: ${error.url}`
-        : "id" in error
-          ? `Not found: ${error.id}`
-          : "name" in error
-            ? `Already exists: ${error.name}`
-            : "Unknown error",
+      : "cause" in error && error.type === "SUMMARY_GENERATION_FAILED"
+        ? `Summary generation failed: ${error.cause}`
+        : "url" in error
+          ? `Failed to fetch: ${error.url}`
+          : "id" in error
+            ? `Not found: ${error.id}`
+            : "name" in error
+              ? `Already exists: ${error.name}`
+              : "Unknown error",
 });

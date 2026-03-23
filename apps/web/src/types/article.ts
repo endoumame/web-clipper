@@ -17,6 +17,7 @@ export interface Article {
     | "other";
   ogImageUrl: string | null;
   memo: string | null;
+  aiSummary: string | null;
   isRead: boolean;
   tags: string[];
   createdAt: string;

@@ -6,6 +6,8 @@ import type { AppEnv } from "./presentation/types.js";
 import { createD1ArticleRepository } from "./infrastructure/persistence/d1-article-repository.js";
 import { createD1TagRepository } from "./infrastructure/persistence/d1-tag-repository.js";
 import { createFetchMetadataFetcher } from "./infrastructure/services/fetch-metadata-fetcher.js";
+import { createWorkersAiSummarizer } from "./infrastructure/services/workers-ai-summarizer.js";
+import { createReadabilityContentExtractor } from "./infrastructure/services/readability-content-extractor.js";
 import { createD1UserRepository } from "./infrastructure/persistence/d1-user-repository.js";
 import { createD1SessionRepository } from "./infrastructure/persistence/d1-session-repository.js";
 import { createWebCryptoPasswordHasher } from "./infrastructure/services/web-crypto-password-hasher.js";
@@ -41,6 +43,8 @@ base.use("/api/*", async (c, next) => {
   c.set("deps", {
     articleRepo: createD1ArticleRepository(db),
     metadataFetcher: createFetchMetadataFetcher(),
+    summarizer: createWorkersAiSummarizer(c.env.AI),
+    contentExtractor: createReadabilityContentExtractor(),
     userRepo: createD1UserRepository(db),
     sessionRepo: createD1SessionRepository(db),
     passwordHasher: createWebCryptoPasswordHasher(),

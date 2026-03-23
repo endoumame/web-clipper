@@ -29,6 +29,9 @@ const allTags = ref<string[]>([]);
 // 既読切替
 const togglingRead = ref(false);
 
+// AI要約
+const generatingSummary = ref(false);
+
 // 削除
 const deleting = ref(false);
 
@@ -213,6 +216,24 @@ async function addTag() {
     // エラー時は何もしない
   } finally {
     savingTags.value = false;
+  }
+}
+
+async function generateSummary() {
+  if (!article.value || generatingSummary.value) return;
+  generatingSummary.value = true;
+  try {
+    const res = await api.api.articles[":id"].summary.$post({
+      param: { id: articleId.value },
+    });
+    if (res.ok) {
+      const data = (await res.json()) as Article;
+      article.value.aiSummary = data.aiSummary;
+    }
+  } catch {
+    // エラー時は何もしない
+  } finally {
+    generatingSummary.value = false;
   }
 }
 
@@ -484,6 +505,60 @@ onMounted(() => {
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- AI要約 -->
+      <div class="card-base p-5 mt-5">
+        <div class="mb-3 flex items-center justify-between">
+          <span class="section-title">AI要約</span>
+          <button
+            v-if="!article.aiSummary"
+            :disabled="generatingSummary"
+            class="text-sm text-accent hover:underline font-body"
+            @click="generateSummary"
+          >
+            {{ generatingSummary ? "生成中..." : "要約を生成" }}
+          </button>
+          <button
+            v-else
+            :disabled="generatingSummary"
+            class="text-sm text-muted hover:underline font-body"
+            @click="generateSummary"
+          >
+            {{ generatingSummary ? "再生成中..." : "再生成" }}
+          </button>
+        </div>
+
+        <div
+          v-if="generatingSummary && !article.aiSummary"
+          class="flex items-center gap-2 text-sm text-muted font-body"
+        >
+          <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            />
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+            />
+          </svg>
+          AIが記事を要約しています...
+        </div>
+        <p
+          v-else-if="article.aiSummary"
+          class="whitespace-pre-wrap text-sm text-foreground/80 font-body leading-relaxed"
+        >
+          {{ article.aiSummary }}
+        </p>
+        <p v-else class="text-sm text-muted/50 font-body">
+          ボタンを押すとAIが記事の内容を要約します
+        </p>
       </div>
 
       <!-- 既読/未読トグル -->

@@ -1,5 +1,10 @@
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import type { ArticleRepository, MetadataFetcher } from "../domain/article/index.js";
+import type {
+  ArticleRepository,
+  MetadataFetcher,
+  ArticleSummarizer,
+  ContentExtractor,
+} from "../domain/article/index.js";
 import type { UserRepository, PasswordHasher } from "../domain/user/index.js";
 import type { TagRepository } from "../domain/tag/index.js";
 import type { SessionRepository } from "../domain/session/index.js";
@@ -10,6 +15,8 @@ import type { TagQueryService } from "../application/queries/tag-query-service.j
 export type Deps = {
   readonly articleRepo: ArticleRepository;
   readonly metadataFetcher: MetadataFetcher;
+  readonly summarizer: ArticleSummarizer;
+  readonly contentExtractor: ContentExtractor;
   readonly userRepo: UserRepository;
   readonly sessionRepo: SessionRepository;
   readonly passwordHasher: PasswordHasher;
@@ -22,6 +29,7 @@ export type Deps = {
 
 export type Bindings = {
   DB: D1Database;
+  AI: Ai;
   GITHUB_CLIENT_ID: string;
   GITHUB_CLIENT_SECRET: string;
   ALLOWED_ORIGIN: string;

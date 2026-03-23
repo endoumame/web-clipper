@@ -11,6 +11,7 @@ export type Article = {
   readonly source: Source;
   readonly ogImageUrl: string | null;
   readonly memo: string | null;
+  readonly aiSummary: string | null;
   readonly isRead: boolean;
   readonly tags: readonly TagName[];
   readonly createdAt: Date;
@@ -32,6 +33,7 @@ const create = (params: CreateParams): Article => {
   const now = new Date();
   return {
     ...params,
+    aiSummary: null,
     isRead: false,
     tags: [...params.tags],
     createdAt: now,
@@ -68,6 +70,12 @@ const updateTags = (article: Article, tags: readonly TagName[]): Article => ({
   updatedAt: new Date(),
 });
 
+const updateAiSummary = (article: Article, aiSummary: string): Article => ({
+  ...article,
+  aiSummary,
+  updatedAt: new Date(),
+});
+
 export const ArticleEntity = {
   create,
   reconstruct,
@@ -75,4 +83,5 @@ export const ArticleEntity = {
   markAsUnread,
   updateMemo,
   updateTags,
+  updateAiSummary,
 } as const;
