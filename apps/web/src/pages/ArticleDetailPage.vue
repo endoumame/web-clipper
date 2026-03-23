@@ -31,6 +31,7 @@ const togglingRead = ref(false);
 
 // AI要約
 const generatingSummary = ref(false);
+const summaryError = ref<string | null>(null);
 
 // 削除
 const deleting = ref(false);
@@ -222,16 +223,23 @@ async function addTag() {
 async function generateSummary() {
   if (!article.value || generatingSummary.value) return;
   generatingSummary.value = true;
+  summaryError.value = null;
   try {
     const res = await api.api.articles[":id"].summary.$post({
       param: { id: articleId.value },
     });
     if (res.ok) {
-      const data = (await res.json()) as Article;
-      article.value.aiSummary = data.aiSummary;
+      const data = await res.json();
+      article.value = data as Article;
+    } else {
+      const body = await res.json().catch(() => null);
+      summaryError.value =
+        body && typeof body === "object" && "message" in body
+          ? String((body as { message: string }).message)
+          : "要約の生成に失敗しました";
     }
   } catch {
-    // エラー時は何もしない
+    summaryError.value = "要約の生成中にエラーが発生しました";
   } finally {
     generatingSummary.value = false;
   }
@@ -555,6 +563,9 @@ onMounted(() => {
           class="whitespace-pre-wrap text-sm text-foreground/80 font-body leading-relaxed"
         >
           {{ article.aiSummary }}
+        </p>
+        <p v-else-if="summaryError" class="text-sm text-error font-body">
+          {{ summaryError }}
         </p>
         <p v-else class="text-sm text-muted/50 font-body">
           ボタンを押すとAIが記事の内容を要約します
