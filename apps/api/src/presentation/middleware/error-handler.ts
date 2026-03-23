@@ -26,18 +26,39 @@ export const domainErrorToStatus = <S extends DomainStatusCode>(error: DomainErr
   // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Hono requires exact status code literals; centralizing the only unavoidable cast here
   STATUS_MAP[error.type] as S;
 
+const toMessage = (error: DomainError): string => {
+  switch (error.type) {
+    case "INVALID_URL":
+    case "INVALID_TAG_NAME":
+    case "INVALID_ARTICLE_ID":
+    case "INVALID_USER_ID":
+    case "INVALID_SESSION_ID":
+    case "INVALID_CREDENTIALS":
+    case "SESSION_NOT_FOUND":
+    case "SESSION_EXPIRED":
+    case "SETUP_ALREADY_COMPLETED":
+    case "OAUTH_ERROR":
+      return error.message;
+    case "ARTICLE_NOT_FOUND":
+      return `Article not found: ${error.id}`;
+    case "TAG_NOT_FOUND":
+      return `Tag not found: ${error.id}`;
+    case "ARTICLE_ALREADY_EXISTS":
+      return `Article already exists: ${error.url}`;
+    case "TAG_ALREADY_EXISTS":
+      return `Tag already exists: ${error.name}`;
+    case "METADATA_FETCH_FAILED":
+      return `Failed to fetch metadata from ${error.url}: ${error.cause}`;
+    case "SUMMARY_GENERATION_FAILED":
+      return `AI summary generation failed: ${error.cause}`;
+    case "STORAGE_ERROR": {
+      const cause = error.cause instanceof Error ? error.cause.message : String(error.cause);
+      return `Internal storage error: ${cause}`;
+    }
+  }
+};
+
 export const domainErrorToResponse = (error: DomainError) => ({
   error: error.type,
-  message:
-    "message" in error
-      ? error.message
-      : "cause" in error && error.type === "SUMMARY_GENERATION_FAILED"
-        ? `Summary generation failed: ${error.cause}`
-        : "url" in error
-          ? `Failed to fetch: ${error.url}`
-          : "id" in error
-            ? `Not found: ${error.id}`
-            : "name" in error
-              ? `Already exists: ${error.name}`
-              : "Unknown error",
+  message: toMessage(error),
 });
