@@ -48,12 +48,8 @@ const HTTP_NOT_FOUND = 404;
 const HISTORY_BACK_STEPS = -1;
 
 const handleFetchError = function handleFetchError(status: number): void {
-  // oxlint-disable-next-line prefer-ternary -- conflicts with no-ternary rule
-  if (status === HTTP_NOT_FOUND) {
-    error.value = "記事が見つかりませんでした。";
-  } else {
-    error.value = "記事の取得に失敗しました。";
-  }
+  error.value =
+    status === HTTP_NOT_FOUND ? "記事が見つかりませんでした。" : "記事の取得に失敗しました。";
 };
 
 const fetchArticle = async function fetchArticle(): Promise<void> {

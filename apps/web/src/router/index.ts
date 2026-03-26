@@ -131,7 +131,7 @@ const setTransitionForBackNavigation = (
   }
 };
 
-// oxlint-disable-next-line require-await -- returns Promise but doesn't use await directly
+// oxlint-disable-next-line require-await -- async required for vue-router but no direct await needed
 router.beforeResolve(async (to, from) => {
   if (typeof document.startViewTransition !== "function") {
     return;
