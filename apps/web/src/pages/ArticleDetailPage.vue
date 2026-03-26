@@ -202,7 +202,6 @@ const extractSummaryErrorMessage = function extractSummaryErrorMessage(body: unk
 const handleSummaryResponse = async function handleSummaryResponse(res: Response): Promise<void> {
   if (res.ok) {
     const data = await res.json();
-    // oxlint-disable-next-line typescript/no-non-null-assertion -- article is checked before calling
     article.value = data as Article;
   } else {
     const body = await res.json().catch(() => null);

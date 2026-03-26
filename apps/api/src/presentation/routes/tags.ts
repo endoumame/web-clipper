@@ -4,12 +4,18 @@ import {
   TagListResponseSchema,
   TagResponseSchema,
 } from "@web-clipper/shared";
+import {
+  HTTP_BAD_REQUEST,
+  HTTP_CONFLICT,
+  HTTP_CREATED,
+  HTTP_NOT_FOUND,
+  HTTP_NO_CONTENT,
+  HTTP_OK,
+} from "../http-status.js";
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import { createTag, deleteTag } from "../../application/commands/index.js";
 import { domainErrorToResponse, domainErrorToStatus } from "../middleware/error-handler.js";
 import type { AppEnv } from "../types.js";
-
-// oxlint-disable no-magic-numbers -- HTTP status codes are self-documenting in route handler context
 
 const INITIAL_ARTICLE_COUNT = 0;
 
@@ -19,7 +25,7 @@ const listTagsRoute = createRoute({
   method: "get",
   path: "/api/tags",
   responses: {
-    200: {
+    [HTTP_OK]: {
       content: {
         "application/json": {
           schema: TagListResponseSchema.openapi("TagListResponse"),
@@ -46,7 +52,7 @@ const createTagRoute = createRoute({
     },
   },
   responses: {
-    201: {
+    [HTTP_CREATED]: {
       content: {
         "application/json": {
           schema: TagResponseSchema.openapi("TagCreatedResponse"),
@@ -54,7 +60,7 @@ const createTagRoute = createRoute({
       },
       description: "Tag created",
     },
-    400: {
+    [HTTP_BAD_REQUEST]: {
       content: {
         "application/json": {
           schema: ErrorResponseSchema,
@@ -62,7 +68,7 @@ const createTagRoute = createRoute({
       },
       description: "Validation error",
     },
-    409: {
+    [HTTP_CONFLICT]: {
       content: {
         "application/json": {
           schema: ErrorResponseSchema,
@@ -84,10 +90,10 @@ const deleteTagRoute = createRoute({
     }),
   },
   responses: {
-    204: {
+    [HTTP_NO_CONTENT]: {
       description: "Tag deleted",
     },
-    404: {
+    [HTTP_NOT_FOUND]: {
       content: {
         "application/json": {
           schema: ErrorResponseSchema,
@@ -115,7 +121,7 @@ const tagRoutes = new OpenAPIHono<AppEnv>()
           name: tag.name,
         })),
       },
-      200,
+      HTTP_OK,
     );
   })
   .openapi(createTagRoute, async (ctx) => {
@@ -131,9 +137,13 @@ const tagRoutes = new OpenAPIHono<AppEnv>()
             id: tag.id,
             name: tag.name,
           },
-          201,
+          HTTP_CREATED,
         ),
-      (error) => ctx.json(domainErrorToResponse(error), domainErrorToStatus<400 | 409>(error)),
+      (error) =>
+        ctx.json(
+          domainErrorToResponse(error),
+          domainErrorToStatus<typeof HTTP_BAD_REQUEST | typeof HTTP_CONFLICT>(error),
+        ),
     );
   })
   .openapi(deleteTagRoute, async (ctx) => {
@@ -141,8 +151,9 @@ const tagRoutes = new OpenAPIHono<AppEnv>()
     const { id } = ctx.req.valid("param");
     const result = await deleteTag({ tagRepo: deps.tagRepo })(id);
     return result.match(
-      () => ctx.body(null, 204),
-      (error) => ctx.json(domainErrorToResponse(error), domainErrorToStatus<404>(error)),
+      () => ctx.body(null, HTTP_NO_CONTENT),
+      (error) =>
+        ctx.json(domainErrorToResponse(error), domainErrorToStatus<typeof HTTP_NOT_FOUND>(error)),
     );
   });
 

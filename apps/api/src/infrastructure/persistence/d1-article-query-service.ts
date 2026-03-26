@@ -25,6 +25,17 @@ const articleColumns = {
   url: articles.url,
 } as const;
 
+interface ArticleListRow {
+  readonly createdAt: Date;
+  readonly description: string | null;
+  readonly id: string;
+  readonly isRead: boolean;
+  readonly ogImageUrl: string | null;
+  readonly source: string;
+  readonly title: string;
+  readonly url: string;
+}
+
 const hasValue = (val: string | null | undefined): val is string =>
   typeof val === "string" && val !== "";
 
@@ -66,7 +77,7 @@ const addCursorCondition = async (
   }
 };
 
-const fetchRowsWithTagQuery = async (params: TagQueryParams): Promise<unknown[]> => {
+const fetchRowsWithTagQuery = async (params: TagQueryParams): Promise<ArticleListRow[]> => {
   const result = await params.db
     .select(articleColumns)
     .from(articles)
@@ -83,7 +94,7 @@ const fetchRowsWithoutTagQueryFiltered = async (
   db: DrizzleD1Database,
   conditions: ReturnType<typeof eq>[],
   limit: number,
-): Promise<unknown[]> => {
+): Promise<ArticleListRow[]> => {
   const result = await db
     .select(articleColumns)
     .from(articles)
@@ -97,7 +108,7 @@ const fetchRowsWithoutTagQueryFiltered = async (
 const fetchRowsWithoutTagQueryAll = async (
   db: DrizzleD1Database,
   limit: number,
-): Promise<unknown[]> => {
+): Promise<ArticleListRow[]> => {
   const result = await db
     .select(articleColumns)
     .from(articles)
@@ -111,7 +122,7 @@ const fetchRowsWithoutTagQuery = async (
   db: DrizzleD1Database,
   conditions: ReturnType<typeof eq>[],
   limit: number,
-): Promise<unknown[]> => {
+): Promise<ArticleListRow[]> => {
   if (conditions.length > EMPTY_LENGTH) {
     const result = await fetchRowsWithoutTagQueryFiltered(db, conditions, limit);
     return result;
@@ -123,9 +134,9 @@ const fetchRowsWithoutTagQuery = async (
 const parseSource = (source: string): ReturnType<typeof SourceVO.schema.parse> =>
   SourceVO.schema.parse(source);
 
-const buildResult = (rows: (typeof articles.$inferSelect)[], limit: number): ListArticlesResult => {
+const buildResult = (rows: ArticleListRow[], limit: number): ListArticlesResult => {
   const hasNext = rows.length > limit;
-  let items: (typeof articles.$inferSelect)[] = rows;
+  let items: ArticleListRow[] = rows;
   if (hasNext) {
     items = rows.slice(EMPTY_LENGTH, limit);
   }
@@ -137,24 +148,6 @@ const buildResult = (rows: (typeof articles.$inferSelect)[], limit: number): Lis
     articles: items.map((item) => ({ ...item, source: parseSource(item.source) })),
     nextCursor,
   };
-};
-
-const fetchRowsWithTag = async (
-  params: TagQueryParams,
-): Promise<(typeof articles.$inferSelect)[]> => {
-  const result = await fetchRowsWithTagQuery(params);
-  // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- drizzle result matches article schema
-  return result as (typeof articles.$inferSelect)[];
-};
-
-const fetchRowsWithoutTag = async (
-  db: DrizzleD1Database,
-  conditions: ReturnType<typeof eq>[],
-  limit: number,
-): Promise<(typeof articles.$inferSelect)[]> => {
-  const result = await fetchRowsWithoutTagQuery(db, conditions, limit);
-  // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- drizzle result matches article schema
-  return result as (typeof articles.$inferSelect)[];
 };
 
 const createService = (db: DrizzleD1Database): ArticleQueryService => ({
@@ -183,16 +176,16 @@ const createService = (db: DrizzleD1Database): ArticleQueryService => ({
     const conditions = buildConditions(params);
     await addCursorCondition(db, params, conditions);
 
-    let rows: (typeof articles.$inferSelect)[] = [];
+    let rows: ArticleListRow[] = [];
     if (hasValue(params.tagName)) {
-      rows = await fetchRowsWithTag({
+      rows = await fetchRowsWithTagQuery({
         conditions,
         db,
         limit,
         tagName: params.tagName,
       });
     } else {
-      rows = await fetchRowsWithoutTag(db, conditions, limit);
+      rows = await fetchRowsWithoutTagQuery(db, conditions, limit);
     }
     return buildResult(rows, limit);
   },

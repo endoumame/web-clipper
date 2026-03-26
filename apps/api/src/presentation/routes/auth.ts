@@ -1,3 +1,5 @@
+import type { HTTP_CONFLICT, HTTP_INTERNAL_ERROR } from "../http-status.js";
+import { HTTP_NO_CONTENT, HTTP_OK, HTTP_REDIRECT, HTTP_UNAUTHORIZED } from "../http-status.js";
 import {
   SESSION_COOKIE_NAME,
   createExpiredSessionCookie,
@@ -19,8 +21,6 @@ import type { AppEnv } from "../types.js";
 import type { Context } from "hono";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { getCookie } from "hono/cookie";
-
-// oxlint-disable no-magic-numbers -- HTTP status codes are self-documenting in route handler context
 
 const MAX_AGE_OAUTH_STATE = 600;
 
@@ -98,7 +98,10 @@ const buildCallbackRedirectUrl = (ctx: Context<AppEnv>): string => {
 const validateOAuthState = (ctx: Context<AppEnv>, state: string): Response | null => {
   const savedState = getCookie(ctx, "oauth_state");
   if (!isValidState(savedState, state)) {
-    return ctx.json({ error: "OAUTH_ERROR", message: "Invalid state parameter" }, 401);
+    return ctx.json(
+      { error: "OAUTH_ERROR", message: "Invalid state parameter" },
+      HTTP_UNAUTHORIZED,
+    );
   }
   return null;
 };
@@ -109,7 +112,7 @@ const processGithubOAuth = async (ctx: Context<AppEnv>, code: string): Promise<R
   const tokenResult = await exchangeAndFetchGithubUser(deps, code, redirectUri);
 
   if ("error" in tokenResult) {
-    return ctx.json(tokenResult, 401);
+    return ctx.json(tokenResult, HTTP_UNAUTHORIZED);
   }
 
   const result = await githubOAuthCallback({
@@ -123,9 +126,10 @@ const processGithubOAuth = async (ctx: Context<AppEnv>, code: string): Promise<R
   return result.match(
     ({ session }) => {
       ctx.header("Set-Cookie", createSessionCookie(String(session.id), session.expiresAt));
-      return ctx.redirect(buildCallbackRedirectUrl(ctx), 302);
+      return ctx.redirect(buildCallbackRedirectUrl(ctx), HTTP_REDIRECT);
     },
-    (error) => ctx.json(domainErrorToResponse(error), domainErrorToStatus<401>(error)),
+    (error) =>
+      ctx.json(domainErrorToResponse(error), domainErrorToStatus<typeof HTTP_UNAUTHORIZED>(error)),
   );
 };
 
@@ -134,8 +138,12 @@ const authRoutes = new OpenAPIHono<AppEnv>()
     const deps = ctx.get("deps");
     const result = await checkSetupStatus({ userRepo: deps.userRepo })();
     return result.match(
-      (status) => ctx.json(status, 200),
-      (error) => ctx.json(domainErrorToResponse(error), domainErrorToStatus<500>(error)),
+      (status) => ctx.json(status, HTTP_OK),
+      (error) =>
+        ctx.json(
+          domainErrorToResponse(error),
+          domainErrorToStatus<typeof HTTP_INTERNAL_ERROR>(error),
+        ),
     );
   })
   .openapi(setupRoute, async (ctx) => {
@@ -150,9 +158,10 @@ const authRoutes = new OpenAPIHono<AppEnv>()
       ({ session, user }) => {
         const response = buildAuthUserResponse(user, session);
         ctx.header("Set-Cookie", response.cookie);
-        return ctx.json(response.body, 200);
+        return ctx.json(response.body, HTTP_OK);
       },
-      (error) => ctx.json(domainErrorToResponse(error), domainErrorToStatus<409>(error)),
+      (error) =>
+        ctx.json(domainErrorToResponse(error), domainErrorToStatus<typeof HTTP_CONFLICT>(error)),
     );
   })
   .openapi(loginRoute, async (ctx) => {
@@ -167,9 +176,13 @@ const authRoutes = new OpenAPIHono<AppEnv>()
       ({ session, user }) => {
         const response = buildAuthUserResponse(user, session);
         ctx.header("Set-Cookie", response.cookie);
-        return ctx.json(response.body, 200);
+        return ctx.json(response.body, HTTP_OK);
       },
-      (error) => ctx.json(domainErrorToResponse(error), domainErrorToStatus<401>(error)),
+      (error) =>
+        ctx.json(
+          domainErrorToResponse(error),
+          domainErrorToStatus<typeof HTTP_UNAUTHORIZED>(error),
+        ),
     );
   })
   .openapi(logoutRoute, async (ctx) => {
@@ -179,14 +192,14 @@ const authRoutes = new OpenAPIHono<AppEnv>()
       await logout({ sessionRepo: deps.sessionRepo })(sessionId);
     }
     ctx.header("Set-Cookie", createExpiredSessionCookie());
-    return ctx.body(null, 204);
+    return ctx.body(null, HTTP_NO_CONTENT);
   })
   .openapi(githubAuthRoute, (ctx) => {
     const state = crypto.randomUUID();
     const redirectUri = buildGithubRedirectUri(ctx.env.ALLOWED_ORIGIN);
     const githubUrl = `https://github.com/login/oauth/authorize?client_id=${ctx.env.GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read:user&state=${state}`;
     ctx.header("Set-Cookie", buildOAuthStateCookie(state));
-    return ctx.redirect(githubUrl, 302);
+    return ctx.redirect(githubUrl, HTTP_REDIRECT);
   })
   .openapi(githubCallbackRoute, async (ctx) => {
     const { code, state } = ctx.req.valid("query");
@@ -208,8 +221,12 @@ const authRoutes = new OpenAPIHono<AppEnv>()
       userRepo: deps.userRepo,
     })(sessionId);
     return result.match(
-      (status) => ctx.json(status, 200),
-      (error) => ctx.json(domainErrorToResponse(error), domainErrorToStatus<500>(error)),
+      (status) => ctx.json(status, HTTP_OK),
+      (error) =>
+        ctx.json(
+          domainErrorToResponse(error),
+          domainErrorToStatus<typeof HTTP_INTERNAL_ERROR>(error),
+        ),
     );
   });
 

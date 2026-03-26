@@ -1,3 +1,5 @@
+import type { HTTP_BAD_GATEWAY, HTTP_BAD_REQUEST, HTTP_CONFLICT } from "../http-status.js";
+import { HTTP_CREATED, HTTP_NOT_FOUND, HTTP_NO_CONTENT, HTTP_OK } from "../http-status.js";
 import {
   clipArticle,
   deleteArticle,
@@ -17,8 +19,6 @@ import type { AppEnv } from "../types.js";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import type { Source } from "../../domain/article/source.js";
 import { SourceSchema } from "@web-clipper/shared";
-
-// oxlint-disable no-magic-numbers -- HTTP status codes are self-documenting in route handler context
 
 interface ArticleInput {
   aiSummary: string | null;
@@ -92,7 +92,7 @@ const articleRoutes = new OpenAPIHono<AppEnv>()
         })),
         nextCursor: result.nextCursor,
       },
-      200,
+      HTTP_OK,
     );
   })
   .openapi(getArticleRoute, async (ctx) => {
@@ -100,9 +100,9 @@ const articleRoutes = new OpenAPIHono<AppEnv>()
     const { id } = ctx.req.valid("param");
     const article = await deps.articleQuery.getById(id);
     if (!article) {
-      return ctx.json({ error: "ARTICLE_NOT_FOUND", message: `Not found: ${id}` }, 404);
+      return ctx.json({ error: "ARTICLE_NOT_FOUND", message: `Not found: ${id}` }, HTTP_NOT_FOUND);
     }
-    return ctx.json(toArticleResponse(article), 200);
+    return ctx.json(toArticleResponse(article), HTTP_OK);
   })
   .openapi(createArticleRoute, async (ctx) => {
     const deps = ctx.get("deps");
@@ -112,9 +112,14 @@ const articleRoutes = new OpenAPIHono<AppEnv>()
       metadataFetcher: deps.metadataFetcher,
     })({ memo: body.memo, tags: body.tags, url: body.url });
     return result.match(
-      (article) => ctx.json(toArticleResponse(article), 201),
+      (article) => ctx.json(toArticleResponse(article), HTTP_CREATED),
       (error) =>
-        ctx.json(domainErrorToResponse(error), domainErrorToStatus<400 | 409 | 502>(error)),
+        ctx.json(
+          domainErrorToResponse(error),
+          domainErrorToStatus<
+            typeof HTTP_BAD_REQUEST | typeof HTTP_CONFLICT | typeof HTTP_BAD_GATEWAY
+          >(error),
+        ),
     );
   })
   .openapi(updateArticleRoute, async (ctx) => {
@@ -125,8 +130,12 @@ const articleRoutes = new OpenAPIHono<AppEnv>()
       articleRepo: deps.articleRepo,
     })({ id, ...body });
     return result.match(
-      (article) => ctx.json(toArticleResponse(article), 200),
-      (error) => ctx.json(domainErrorToResponse(error), domainErrorToStatus<400 | 404>(error)),
+      (article) => ctx.json(toArticleResponse(article), HTTP_OK),
+      (error) =>
+        ctx.json(
+          domainErrorToResponse(error),
+          domainErrorToStatus<typeof HTTP_BAD_REQUEST | typeof HTTP_NOT_FOUND>(error),
+        ),
     );
   })
   .openapi(generateSummaryRoute, async (ctx) => {
@@ -138,8 +147,12 @@ const articleRoutes = new OpenAPIHono<AppEnv>()
       summarizer: deps.summarizer,
     })(id);
     return result.match(
-      (article) => ctx.json(toArticleResponse(article), 200),
-      (error) => ctx.json(domainErrorToResponse(error), domainErrorToStatus<404 | 502>(error)),
+      (article) => ctx.json(toArticleResponse(article), HTTP_OK),
+      (error) =>
+        ctx.json(
+          domainErrorToResponse(error),
+          domainErrorToStatus<typeof HTTP_NOT_FOUND | typeof HTTP_BAD_GATEWAY>(error),
+        ),
     );
   })
   .openapi(deleteArticleRoute, async (ctx) => {
@@ -149,8 +162,9 @@ const articleRoutes = new OpenAPIHono<AppEnv>()
       articleRepo: deps.articleRepo,
     })(id);
     return result.match(
-      () => ctx.body(null, 204),
-      (error) => ctx.json(domainErrorToResponse(error), domainErrorToStatus<404>(error)),
+      () => ctx.body(null, HTTP_NO_CONTENT),
+      (error) =>
+        ctx.json(domainErrorToResponse(error), domainErrorToStatus<typeof HTTP_NOT_FOUND>(error)),
     );
   });
 

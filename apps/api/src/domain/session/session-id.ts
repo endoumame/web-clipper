@@ -3,8 +3,7 @@ import type { DomainError } from "../shared/errors.js";
 import type { Result } from "neverthrow";
 import { z } from "zod";
 
-// oxlint-disable-next-line no-deprecated -- z.string().uuid() is the current stable API
-const SessionIdSchema = z.string().uuid().brand<"SessionId">();
+const SessionIdSchema = z.uuid().brand<"SessionId">();
 
 type SessionId = z.infer<typeof SessionIdSchema>;
 

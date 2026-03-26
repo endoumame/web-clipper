@@ -16,20 +16,18 @@ interface UpdateArticleInput {
   readonly isRead?: boolean;
 }
 
-const applyMemoUpdate = (article: Article, memo: string | null | undefined): Article => {
-  // oxlint-disable-next-line no-undefined -- checking optional property presence requires undefined comparison
-  if (memo === undefined) {
+const applyMemoUpdate = (article: Article, input: UpdateArticleInput): Article => {
+  if (!("memo" in input)) {
     return article;
   }
-  return ArticleEntity.updateMemo(article, memo ?? null);
+  return ArticleEntity.updateMemo(article, input.memo ?? null);
 };
 
-const applyReadUpdate = (article: Article, isRead: boolean | undefined): Article => {
-  // oxlint-disable-next-line no-undefined -- checking optional property presence requires undefined comparison
-  if (isRead === undefined) {
+const applyReadUpdate = (article: Article, input: UpdateArticleInput): Article => {
+  if (!("isRead" in input)) {
     return article;
   }
-  if (isRead) {
+  if (input.isRead === true) {
     return ArticleEntity.markAsRead(article);
   }
   return ArticleEntity.markAsUnread(article);
@@ -48,11 +46,10 @@ export const updateArticle =
         }),
       )
       .andThen((article) => {
-        let updated = applyMemoUpdate(article, input.memo);
-        updated = applyReadUpdate(updated, input.isRead);
+        let updated = applyMemoUpdate(article, input);
+        updated = applyReadUpdate(updated, input);
 
-        // oxlint-disable-next-line no-undefined -- checking optional property presence requires undefined comparison
-        if (input.tags !== undefined) {
+        if ("tags" in input && input.tags) {
           const tagsResult = TagNameVO.validateMany(input.tags);
           if (tagsResult.isErr()) {
             return err(tagsResult.error);
