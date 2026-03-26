@@ -10,7 +10,6 @@ export default defineConfig({
     style: "error",
     suspicious: "error",
   },
-  ignorePatterns: [".claude/worktrees/**"],
   overrides: [
     {
       files: ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts"],
