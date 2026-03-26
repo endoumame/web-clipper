@@ -1,32 +1,34 @@
-export interface Article {
-  id: string;
-  url: string;
-  title: string;
+interface Article {
+  aiSummary: string | null;
+  createdAt: string;
   description: string | null;
+  id: string;
+  isRead: boolean;
+  memo: string | null;
+  ogImageUrl: string | null;
   source:
-    | "twitter"
-    | "qiita"
-    | "zenn"
-    | "hatena"
-    | "github"
     | "classmethod"
+    | "devto"
+    | "github"
+    | "hatena"
     | "medium"
     | "note"
-    | "devto"
+    | "other"
+    | "qiita"
     | "stackoverflow"
-    | "other";
-  ogImageUrl: string | null;
-  memo: string | null;
-  aiSummary: string | null;
-  isRead: boolean;
+    | "twitter"
+    | "zenn";
   tags: string[];
-  createdAt: string;
+  title: string;
   updatedAt: string;
+  url: string;
 }
 
-export interface Tag {
-  id: string;
-  name: string;
+interface Tag {
   articleCount: number;
   createdAt: string;
+  id: string;
+  name: string;
 }
+
+export type { Article, Tag };

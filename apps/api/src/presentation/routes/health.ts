@@ -1,5 +1,7 @@
 import { Hono } from "hono";
 
-export const healthRoutes = new Hono()
-  .get("/health", (c) => c.json({ status: "ok" }))
-  .get("/robots.txt", (c) => c.text("User-agent: *\nDisallow: /\n"));
+const healthRoutes = new Hono()
+  .get("/health", (ctx) => ctx.json({ status: "ok" }))
+  .get("/robots.txt", (ctx) => ctx.text("User-agent: *\nDisallow: /\n"));
+
+export { healthRoutes };

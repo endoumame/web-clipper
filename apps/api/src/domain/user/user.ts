@@ -1,6 +1,6 @@
 import type { UserId } from "./user-id.js";
 
-export type User = {
+interface User {
   readonly id: UserId;
   readonly username: string;
   readonly passwordHash: string;
@@ -8,24 +8,24 @@ export type User = {
   readonly githubId: string | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
-};
+}
 
-type CreateParams = {
+interface CreateParams {
   readonly id: UserId;
   readonly username: string;
   readonly passwordHash: string;
   readonly passwordSalt: string;
   readonly githubId?: string | null;
-};
+}
 
 const create = (params: CreateParams): User => ({
+  createdAt: new Date(),
+  githubId: params.githubId ?? null,
   id: params.id,
-  username: params.username,
   passwordHash: params.passwordHash,
   passwordSalt: params.passwordSalt,
-  githubId: params.githubId ?? null,
-  createdAt: new Date(),
   updatedAt: new Date(),
+  username: params.username,
 });
 
 const linkGitHub = (user: User, githubId: string): User => ({
@@ -34,7 +34,10 @@ const linkGitHub = (user: User, githubId: string): User => ({
   updatedAt: new Date(),
 });
 
-export const UserEntity = {
+const UserEntity = {
   create,
   linkGitHub,
 } as const;
+
+export { UserEntity };
+export type { User };

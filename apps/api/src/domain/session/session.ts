@@ -1,30 +1,39 @@
 import type { SessionId } from "./session-id.js";
 import type { UserId } from "../user/user-id.js";
 
-const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+const DAYS_IN_SESSION = 30;
+const HOURS_PER_DAY = 24;
+const MINUTES_PER_HOUR = 60;
+const SECONDS_PER_MINUTE = 60;
+const MS_PER_SECOND = 1000;
+const SESSION_DURATION_MS =
+  DAYS_IN_SESSION * HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MS_PER_SECOND;
 
-export type Session = {
+interface Session {
   readonly id: SessionId;
   readonly userId: UserId;
   readonly expiresAt: Date;
   readonly createdAt: Date;
-};
+}
 
-type CreateParams = {
+interface CreateParams {
   readonly id: SessionId;
   readonly userId: UserId;
-};
+}
 
 const create = (params: CreateParams): Session => ({
+  createdAt: new Date(),
+  expiresAt: new Date(Date.now() + SESSION_DURATION_MS),
   id: params.id,
   userId: params.userId,
-  expiresAt: new Date(Date.now() + SESSION_DURATION_MS),
-  createdAt: new Date(),
 });
 
 const isExpired = (session: Session): boolean => session.expiresAt < new Date();
 
-export const SessionEntity = {
+const SessionEntity = {
   create,
   isExpired,
 } as const;
+
+export { SessionEntity };
+export type { Session };

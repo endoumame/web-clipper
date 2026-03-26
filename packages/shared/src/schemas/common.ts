@@ -1,7 +1,11 @@
 import { z } from "zod";
 
+const MIN_LIMIT = 1;
+const MAX_LIMIT = 100;
+const DEFAULT_LIMIT = 20;
+
 // Source enum
-export const SourceSchema = z.enum([
+const SourceSchema = z.enum([
   "twitter",
   "qiita",
   "zenn",
@@ -14,11 +18,16 @@ export const SourceSchema = z.enum([
   "stackoverflow",
   "other",
 ]);
-export type Source = z.infer<typeof SourceSchema>;
+
+type Source = z.infer<typeof SourceSchema>;
 
 // Pagination cursor
-export const CursorPaginationSchema = z.object({
+const CursorPaginationSchema = z.object({
   cursor: z.string().optional(),
-  limit: z.coerce.number().min(1).max(100).default(20),
+  limit: z.coerce.number().min(MIN_LIMIT).max(MAX_LIMIT).default(DEFAULT_LIMIT),
 });
-export type CursorPagination = z.infer<typeof CursorPaginationSchema>;
+
+type CursorPagination = z.infer<typeof CursorPaginationSchema>;
+
+export { CursorPaginationSchema, SourceSchema };
+export type { CursorPagination, Source };

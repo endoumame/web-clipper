@@ -1,7 +1,9 @@
-import type { ResultAsync } from "neverthrow";
 import type { ArticleUrl } from "./article-url.js";
 import type { DomainError } from "../shared/errors.js";
+import type { ResultAsync } from "neverthrow";
 
-export type ContentExtractor = {
+interface ContentExtractor {
   readonly extract: (url: ArticleUrl) => ResultAsync<string, DomainError>;
-};
+}
+
+export type { ContentExtractor };

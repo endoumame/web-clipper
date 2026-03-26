@@ -1,27 +1,25 @@
-import { err, type ResultAsync } from "neverthrow";
-import { type UserRepository, UserEntity, type User } from "../../domain/user/index.js";
-import {
-  type SessionRepository,
-  SessionEntity,
-  SessionIdVO,
-  type Session,
-} from "../../domain/session/index.js";
+import type { Session, SessionRepository } from "../../domain/session/index.js";
+import { SessionEntity, SessionIdVO } from "../../domain/session/index.js";
+import type { User, UserRepository } from "../../domain/user/index.js";
 import type { DomainError } from "../../domain/shared/index.js";
+import type { ResultAsync } from "neverthrow";
+import { UserEntity } from "../../domain/user/index.js";
+import { err } from "neverthrow";
 
-type GitHubOAuthCallbackDeps = {
+interface GitHubOAuthCallbackDeps {
   readonly userRepo: UserRepository;
   readonly sessionRepo: SessionRepository;
-};
+}
 
-type GitHubOAuthCallbackInput = {
+interface GitHubOAuthCallbackInput {
   readonly githubId: string;
   readonly githubUsername: string;
-};
+}
 
-type GitHubOAuthCallbackResult = {
+interface GitHubOAuthCallbackResult {
   readonly user: User;
   readonly session: Session;
-};
+}
 
 /**
  * GitHub OAuth callback command.
@@ -42,22 +40,22 @@ export const githubOAuthCallback =
           id: SessionIdVO.generate(),
           userId: existingUser.id,
         });
-        return deps.sessionRepo.save(session).map((s) => ({ user: existingUser, session: s }));
+        return deps.sessionRepo.save(session).map((sv) => ({ session: sv, user: existingUser }));
       }
 
       // GitHub ID not linked yet — find the single user in single-user mode
       return deps.userRepo.findFirst().andThen((user) => {
         if (!user) {
           return err<GitHubOAuthCallbackResult, DomainError>({
-            type: "OAUTH_ERROR",
             message: "No user account exists. Please set up your account first.",
+            type: "OAUTH_ERROR",
           });
         }
 
         if (user.githubId !== null) {
           return err<GitHubOAuthCallbackResult, DomainError>({
-            type: "OAUTH_ERROR",
             message: "Account is already linked to a different GitHub account.",
+            type: "OAUTH_ERROR",
           });
         }
 
@@ -68,7 +66,7 @@ export const githubOAuthCallback =
             id: SessionIdVO.generate(),
             userId: savedUser.id,
           });
-          return deps.sessionRepo.save(session).map((s) => ({ user: savedUser, session: s }));
+          return deps.sessionRepo.save(session).map((sv) => ({ session: sv, user: savedUser }));
         });
       });
     });

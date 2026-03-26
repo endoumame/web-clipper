@@ -1,4 +1,4 @@
-export type DomainError =
+type DomainError =
   | { readonly type: "INVALID_URL"; readonly message: string }
   | { readonly type: "INVALID_TAG_NAME"; readonly message: string }
   | { readonly type: "INVALID_ARTICLE_ID"; readonly message: string }
@@ -20,3 +20,5 @@ export type DomainError =
   | { readonly type: "INVALID_USER_ID"; readonly message: string }
   | { readonly type: "INVALID_SESSION_ID"; readonly message: string }
   | { readonly type: "SUMMARY_GENERATION_FAILED"; readonly cause: string };
+
+export type { DomainError };

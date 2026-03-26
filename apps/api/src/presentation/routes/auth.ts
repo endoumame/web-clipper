@@ -1,331 +1,216 @@
-import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
-import { getCookie } from "hono/cookie";
-import {
-  SetupInputSchema,
-  LoginInputSchema,
-  AuthStatusResponseSchema,
-  SetupStatusResponseSchema,
-  ErrorResponseSchema,
-} from "@web-clipper/shared";
-import type { AppEnv } from "../types.js";
-import { domainErrorToResponse, domainErrorToStatus } from "../middleware/error-handler.js";
-import { setupUser, login, logout, githubOAuthCallback } from "../../application/commands/index.js";
-import { checkSetupStatus, getAuthStatus } from "../../application/queries/index.js";
 import {
   SESSION_COOKIE_NAME,
-  createSessionCookie,
   createExpiredSessionCookie,
+  createSessionCookie,
 } from "../middleware/cookie.js";
+import { checkSetupStatus, getAuthStatus } from "../../application/queries/index.js";
+import {
+  checkSetupStatusRoute,
+  githubAuthRoute,
+  githubCallbackRoute,
+  loginRoute,
+  logoutRoute,
+  meRoute,
+  setupRoute,
+} from "./auth-route-defs.js";
+import { domainErrorToResponse, domainErrorToStatus } from "../middleware/error-handler.js";
+import { githubOAuthCallback, login, logout, setupUser } from "../../application/commands/index.js";
+import type { AppEnv } from "../types.js";
+import type { Context } from "hono";
+import { OpenAPIHono } from "@hono/zod-openapi";
+import { getCookie } from "hono/cookie";
 
-// --- Route definitions ---
+// oxlint-disable no-magic-numbers -- HTTP status codes are self-documenting in route handler context
 
-const checkSetupStatusRoute = createRoute({
-  method: "get",
-  path: "/api/auth/status",
-  tags: ["Auth"],
-  summary: "Check setup status",
-  responses: {
-    200: {
-      content: {
-        "application/json": {
-          schema: SetupStatusResponseSchema.openapi("SetupStatusResponse"),
-        },
-      },
-      description: "Setup status",
-    },
-    500: {
-      content: {
-        "application/json": {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: "Internal server error",
+const MAX_AGE_OAUTH_STATE = 600;
+
+const buildAuthUserResponse = (
+  user: { githubId: string | null; id: unknown; username: string },
+  session: { expiresAt: Date; id: unknown },
+): {
+  body: {
+    authenticated: true;
+    needsSetup: false;
+    user: { githubLinked: boolean; id: string; username: string };
+  };
+  cookie: string;
+} => ({
+  body: {
+    authenticated: true,
+    needsSetup: false,
+    user: {
+      githubLinked: user.githubId !== null,
+      id: String(user.id),
+      username: user.username,
     },
   },
+  cookie: createSessionCookie(String(session.id), session.expiresAt),
 });
 
-const setupRoute = createRoute({
-  method: "post",
-  path: "/api/auth/setup",
-  tags: ["Auth"],
-  summary: "Initial user setup",
-  request: {
-    body: {
-      content: {
-        "application/json": {
-          schema: SetupInputSchema.openapi("SetupInput"),
-        },
-      },
-      required: true,
-    },
-  },
-  responses: {
-    200: {
-      content: {
-        "application/json": {
-          schema: AuthStatusResponseSchema.openapi("SetupResponse"),
-        },
-      },
-      description: "Setup completed",
-    },
-    409: {
-      content: {
-        "application/json": {
-          schema: ErrorResponseSchema.openapi("SetupConflictError"),
-        },
-      },
-      description: "Setup already completed",
-    },
-  },
-});
+const buildGithubRedirectUri = (origin: string): string => `${origin}/api/auth/github/callback`;
 
-const loginRoute = createRoute({
-  method: "post",
-  path: "/api/auth/login",
-  tags: ["Auth"],
-  summary: "Login with credentials",
-  request: {
-    body: {
-      content: {
-        "application/json": {
-          schema: LoginInputSchema.openapi("LoginInput"),
-        },
-      },
-      required: true,
-    },
-  },
-  responses: {
-    200: {
-      content: {
-        "application/json": {
-          schema: AuthStatusResponseSchema.openapi("LoginResponse"),
-        },
-      },
-      description: "Login successful",
-    },
-    401: {
-      content: {
-        "application/json": {
-          schema: ErrorResponseSchema.openapi("LoginUnauthorizedError"),
-        },
-      },
-      description: "Invalid credentials",
-    },
-  },
-});
+const buildOAuthStateCookie = (state: string): string =>
+  `oauth_state=${state}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${String(MAX_AGE_OAUTH_STATE)}`;
 
-const logoutRoute = createRoute({
-  method: "post",
-  path: "/api/auth/logout",
-  tags: ["Auth"],
-  summary: "Logout",
-  responses: {
-    204: {
-      description: "Logged out",
+const CLEAR_OAUTH_STATE_COOKIE = "oauth_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0";
+
+interface GithubOAuthDeps {
+  githubOAuth: {
+    exchangeCode: (code: string, uri: string) => Promise<string>;
+    fetchUser: (token: string) => Promise<{ id: number; login: string }>;
+  };
+}
+
+type GithubExchangeResult =
+  | { githubUser: { id: number; login: string } }
+  | { error: string; message: string };
+
+const exchangeAndFetchGithubUser = async (
+  deps: GithubOAuthDeps,
+  code: string,
+  redirectUri: string,
+): Promise<GithubExchangeResult> => {
+  let accessToken = "";
+  try {
+    accessToken = await deps.githubOAuth.exchangeCode(code, redirectUri);
+  } catch {
+    return { error: "OAUTH_ERROR", message: "Failed to get access token" };
+  }
+
+  try {
+    const githubUser = await deps.githubOAuth.fetchUser(accessToken);
+    return { githubUser };
+  } catch {
+    return { error: "OAUTH_ERROR", message: "Failed to get GitHub user info" };
+  }
+};
+
+const isValidState = (savedState: string | null | undefined, state: string): boolean =>
+  typeof savedState === "string" && savedState !== "" && savedState === state;
+
+const buildCallbackRedirectUrl = (ctx: Context<AppEnv>): string => {
+  if (ctx.env.ALLOWED_ORIGIN) {
+    return ctx.env.ALLOWED_ORIGIN;
+  }
+  return "/";
+};
+
+const validateOAuthState = (ctx: Context<AppEnv>, state: string): Response | null => {
+  const savedState = getCookie(ctx, "oauth_state");
+  if (!isValidState(savedState, state)) {
+    return ctx.json({ error: "OAUTH_ERROR", message: "Invalid state parameter" }, 401);
+  }
+  return null;
+};
+
+const processGithubOAuth = async (ctx: Context<AppEnv>, code: string): Promise<Response> => {
+  const deps = ctx.get("deps");
+  const redirectUri = buildGithubRedirectUri(ctx.env.ALLOWED_ORIGIN);
+  const tokenResult = await exchangeAndFetchGithubUser(deps, code, redirectUri);
+
+  if ("error" in tokenResult) {
+    return ctx.json(tokenResult, 401);
+  }
+
+  const result = await githubOAuthCallback({
+    sessionRepo: deps.sessionRepo,
+    userRepo: deps.userRepo,
+  })({
+    githubId: String(tokenResult.githubUser.id),
+    githubUsername: tokenResult.githubUser.login,
+  });
+
+  return result.match(
+    ({ session }) => {
+      ctx.header("Set-Cookie", createSessionCookie(String(session.id), session.expiresAt));
+      return ctx.redirect(buildCallbackRedirectUrl(ctx), 302);
     },
-  },
-});
+    (error) => ctx.json(domainErrorToResponse(error), domainErrorToStatus<401>(error)),
+  );
+};
 
-const githubAuthRoute = createRoute({
-  method: "get",
-  path: "/api/auth/github",
-  tags: ["Auth"],
-  summary: "Start GitHub OAuth flow",
-  responses: {
-    302: { description: "Redirect to GitHub" },
-  },
-});
-
-const githubCallbackRoute = createRoute({
-  method: "get",
-  path: "/api/auth/github/callback",
-  tags: ["Auth"],
-  summary: "GitHub OAuth callback",
-  request: {
-    query: z.object({
-      code: z.string(),
-      state: z.string(),
-    }),
-  },
-  responses: {
-    302: { description: "Redirect to app" },
-    401: {
-      content: {
-        "application/json": {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: "OAuth error",
-    },
-  },
-});
-
-const meRoute = createRoute({
-  method: "get",
-  path: "/api/auth/me",
-  tags: ["Auth"],
-  summary: "Get current user",
-  responses: {
-    200: {
-      content: {
-        "application/json": {
-          schema: AuthStatusResponseSchema.openapi("MeResponse"),
-        },
-      },
-      description: "Current auth status",
-    },
-    500: {
-      content: {
-        "application/json": {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: "Internal server error",
-    },
-  },
-});
-
-// --- App with handlers ---
-
-export const authRoutes = new OpenAPIHono<AppEnv>()
-  .openapi(checkSetupStatusRoute, async (c) => {
-    const deps = c.get("deps");
+const authRoutes = new OpenAPIHono<AppEnv>()
+  .openapi(checkSetupStatusRoute, async (ctx) => {
+    const deps = ctx.get("deps");
     const result = await checkSetupStatus({ userRepo: deps.userRepo })();
     return result.match(
-      (status) => c.json(status, 200),
-      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<500>(error)),
+      (status) => ctx.json(status, 200),
+      (error) => ctx.json(domainErrorToResponse(error), domainErrorToStatus<500>(error)),
     );
   })
-  .openapi(setupRoute, async (c) => {
-    const deps = c.get("deps");
-    const body = c.req.valid("json");
+  .openapi(setupRoute, async (ctx) => {
+    const deps = ctx.get("deps");
+    const body = ctx.req.valid("json");
     const result = await setupUser({
-      userRepo: deps.userRepo,
-      sessionRepo: deps.sessionRepo,
       passwordHasher: deps.passwordHasher,
-    })({ username: body.username, password: body.password });
+      sessionRepo: deps.sessionRepo,
+      userRepo: deps.userRepo,
+    })({ password: body.password, username: body.username });
     return result.match(
-      ({ user, session }) => {
-        c.header("Set-Cookie", createSessionCookie(session.id as string, session.expiresAt));
-        return c.json(
-          {
-            authenticated: true,
-            user: {
-              id: user.id as string,
-              username: user.username,
-              githubLinked: user.githubId !== null,
-            },
-            needsSetup: false,
-          },
-          200,
-        );
+      ({ session, user }) => {
+        const response = buildAuthUserResponse(user, session);
+        ctx.header("Set-Cookie", response.cookie);
+        return ctx.json(response.body, 200);
       },
-      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<409>(error)),
+      (error) => ctx.json(domainErrorToResponse(error), domainErrorToStatus<409>(error)),
     );
   })
-  .openapi(loginRoute, async (c) => {
-    const deps = c.get("deps");
-    const body = c.req.valid("json");
+  .openapi(loginRoute, async (ctx) => {
+    const deps = ctx.get("deps");
+    const body = ctx.req.valid("json");
     const result = await login({
-      userRepo: deps.userRepo,
-      sessionRepo: deps.sessionRepo,
       passwordHasher: deps.passwordHasher,
-    })({ username: body.username, password: body.password });
+      sessionRepo: deps.sessionRepo,
+      userRepo: deps.userRepo,
+    })({ password: body.password, username: body.username });
     return result.match(
-      ({ user, session }) => {
-        c.header("Set-Cookie", createSessionCookie(session.id as string, session.expiresAt));
-        return c.json(
-          {
-            authenticated: true,
-            user: {
-              id: user.id as string,
-              username: user.username,
-              githubLinked: user.githubId !== null,
-            },
-            needsSetup: false,
-          },
-          200,
-        );
+      ({ session, user }) => {
+        const response = buildAuthUserResponse(user, session);
+        ctx.header("Set-Cookie", response.cookie);
+        return ctx.json(response.body, 200);
       },
-      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<401>(error)),
+      (error) => ctx.json(domainErrorToResponse(error), domainErrorToStatus<401>(error)),
     );
   })
-  .openapi(logoutRoute, async (c) => {
-    const deps = c.get("deps");
-    const sessionId = getCookie(c, SESSION_COOKIE_NAME);
-    if (sessionId) {
+  .openapi(logoutRoute, async (ctx) => {
+    const deps = ctx.get("deps");
+    const sessionId = getCookie(ctx, SESSION_COOKIE_NAME);
+    if (typeof sessionId === "string" && sessionId !== "") {
       await logout({ sessionRepo: deps.sessionRepo })(sessionId);
     }
-    c.header("Set-Cookie", createExpiredSessionCookie());
-    return c.body(null, 204);
+    ctx.header("Set-Cookie", createExpiredSessionCookie());
+    return ctx.body(null, 204);
   })
-  .openapi(githubAuthRoute, async (c) => {
+  .openapi(githubAuthRoute, (ctx) => {
     const state = crypto.randomUUID();
-    const redirectUri = `${c.env.ALLOWED_ORIGIN}/api/auth/github/callback`;
-    const githubUrl = `https://github.com/login/oauth/authorize?client_id=${c.env.GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read:user&state=${state}`;
-
-    c.header(
-      "Set-Cookie",
-      "oauth_state=" + state + "; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600",
-    );
-    return c.redirect(githubUrl, 302);
+    const redirectUri = buildGithubRedirectUri(ctx.env.ALLOWED_ORIGIN);
+    const githubUrl = `https://github.com/login/oauth/authorize?client_id=${ctx.env.GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read:user&state=${state}`;
+    ctx.header("Set-Cookie", buildOAuthStateCookie(state));
+    return ctx.redirect(githubUrl, 302);
   })
-  .openapi(githubCallbackRoute, async (c) => {
-    const { code, state } = c.req.valid("query");
-    const savedState = getCookie(c, "oauth_state");
+  .openapi(githubCallbackRoute, async (ctx) => {
+    const { code, state } = ctx.req.valid("query");
+    const validationError = validateOAuthState(ctx, state);
 
-    // Validate state (CSRF protection)
-    if (!savedState || savedState !== state) {
-      return c.json({ error: "OAUTH_ERROR", message: "Invalid state parameter" }, 401);
+    if (validationError !== null) {
+      return validationError;
     }
 
-    // Clear state cookie
-    c.header("Set-Cookie", "oauth_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0");
-
-    const deps = c.get("deps");
-    const redirectUri = `${c.env.ALLOWED_ORIGIN}/api/auth/github/callback`;
-
-    let accessToken: string;
-    try {
-      accessToken = await deps.githubOAuth.exchangeCode(code, redirectUri);
-    } catch {
-      return c.json({ error: "OAUTH_ERROR", message: "Failed to get access token" }, 401);
-    }
-
-    let githubUser: { id: number; login: string };
-    try {
-      githubUser = await deps.githubOAuth.fetchUser(accessToken);
-    } catch {
-      return c.json({ error: "OAUTH_ERROR", message: "Failed to get GitHub user info" }, 401);
-    }
-
-    // Process OAuth callback
-    const result = await githubOAuthCallback({
-      userRepo: deps.userRepo,
-      sessionRepo: deps.sessionRepo,
-    })({
-      githubId: String(githubUser.id),
-      githubUsername: githubUser.login,
-    });
-
-    return result.match(
-      ({ session }) => {
-        c.header("Set-Cookie", createSessionCookie(session.id as string, session.expiresAt));
-        const redirectUrl = c.env.ALLOWED_ORIGIN || "/";
-        return c.redirect(redirectUrl, 302);
-      },
-      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<401>(error)),
-    );
+    ctx.header("Set-Cookie", CLEAR_OAUTH_STATE_COOKIE);
+    const response = await processGithubOAuth(ctx, code);
+    return response;
   })
-  .openapi(meRoute, async (c) => {
-    const deps = c.get("deps");
-    const sessionId = getCookie(c, SESSION_COOKIE_NAME);
+  .openapi(meRoute, async (ctx) => {
+    const deps = ctx.get("deps");
+    const sessionId = getCookie(ctx, SESSION_COOKIE_NAME);
     const result = await getAuthStatus({
-      userRepo: deps.userRepo,
       sessionRepo: deps.sessionRepo,
+      userRepo: deps.userRepo,
     })(sessionId);
     return result.match(
-      (status) => c.json(status, 200),
-      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<500>(error)),
+      (status) => ctx.json(status, 200),
+      (error) => ctx.json(domainErrorToResponse(error), domainErrorToStatus<500>(error)),
     );
   });
+
+export { authRoutes };

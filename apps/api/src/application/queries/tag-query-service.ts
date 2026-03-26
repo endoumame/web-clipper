@@ -1,10 +1,12 @@
-export type TagWithCount = {
+interface TagWithCount {
   readonly id: string;
   readonly name: string;
   readonly createdAt: Date;
   readonly articleCount: number;
-};
+}
 
-export type TagQueryService = {
+interface TagQueryService {
   readonly list: () => Promise<readonly TagWithCount[]>;
-};
+}
+
+export type { TagWithCount, TagQueryService };

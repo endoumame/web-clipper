@@ -1,43 +1,45 @@
-import type { DrizzleD1Database } from "drizzle-orm/d1";
 import type {
   ArticleRepository,
-  MetadataFetcher,
   ArticleSummarizer,
   ContentExtractor,
+  MetadataFetcher,
 } from "../domain/article/index.js";
-import type { UserRepository, PasswordHasher } from "../domain/user/index.js";
-import type { TagRepository } from "../domain/tag/index.js";
-import type { SessionRepository } from "../domain/session/index.js";
-import type { GitHubOAuthClient } from "../infrastructure/services/github-oauth-client.js";
+import type { PasswordHasher, UserRepository } from "../domain/user/index.js";
 import type { ArticleQueryService } from "../application/queries/article-query-service.js";
+import type { DrizzleD1Database } from "drizzle-orm/d1";
+import type { GitHubOAuthClient } from "../infrastructure/services/github-oauth-client.js";
+import type { SessionRepository } from "../domain/session/index.js";
 import type { TagQueryService } from "../application/queries/tag-query-service.js";
+import type { TagRepository } from "../domain/tag/index.js";
 
-export type Deps = {
-  readonly articleRepo: ArticleRepository;
-  readonly metadataFetcher: MetadataFetcher;
-  readonly summarizer: ArticleSummarizer;
-  readonly contentExtractor: ContentExtractor;
-  readonly userRepo: UserRepository;
-  readonly sessionRepo: SessionRepository;
-  readonly passwordHasher: PasswordHasher;
-  readonly tagRepo: TagRepository;
-  readonly githubOAuth: GitHubOAuthClient;
+interface Deps {
   readonly articleQuery: ArticleQueryService;
-  readonly tagQuery: TagQueryService;
+  readonly articleRepo: ArticleRepository;
+  readonly contentExtractor: ContentExtractor;
   readonly db: DrizzleD1Database;
-};
+  readonly githubOAuth: GitHubOAuthClient;
+  readonly metadataFetcher: MetadataFetcher;
+  readonly passwordHasher: PasswordHasher;
+  readonly sessionRepo: SessionRepository;
+  readonly summarizer: ArticleSummarizer;
+  readonly tagQuery: TagQueryService;
+  readonly tagRepo: TagRepository;
+  readonly userRepo: UserRepository;
+}
 
-export type Bindings = {
-  DB: D1Database;
+interface Bindings {
   AI: Ai;
+  ALLOWED_ORIGIN: string;
+  DB: D1Database;
   GITHUB_CLIENT_ID: string;
   GITHUB_CLIENT_SECRET: string;
-  ALLOWED_ORIGIN: string;
-};
+}
 
-export type AppEnv = {
+interface AppEnv {
   Bindings: Bindings;
   Variables: {
     deps: Deps;
   };
-};
+}
+
+export type { AppEnv, Bindings, Deps };

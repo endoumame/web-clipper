@@ -3,7 +3,7 @@ import type { ArticleUrl } from "./article-url.js";
 import type { Source } from "./source.js";
 import type { TagName } from "../tag/tag-name.js";
 
-export type Article = {
+interface Article {
   readonly id: ArticleId;
   readonly url: ArticleUrl;
   readonly title: string;
@@ -16,9 +16,9 @@ export type Article = {
   readonly tags: readonly TagName[];
   readonly createdAt: Date;
   readonly updatedAt: Date;
-};
+}
 
-type CreateParams = {
+interface CreateParams {
   readonly id: ArticleId;
   readonly url: ArticleUrl;
   readonly title: string;
@@ -27,16 +27,16 @@ type CreateParams = {
   readonly ogImageUrl: string | null;
   readonly memo: string | null;
   readonly tags: readonly TagName[];
-};
+}
 
 const create = (params: CreateParams): Article => {
   const now = new Date();
   return {
     ...params,
     aiSummary: null,
+    createdAt: now,
     isRead: false,
     tags: [...params.tags],
-    createdAt: now,
     updatedAt: now,
   };
 };
@@ -64,9 +64,9 @@ const updateMemo = (article: Article, memo: string | null): Article => ({
   updatedAt: new Date(),
 });
 
-const updateTags = (article: Article, tags: readonly TagName[]): Article => ({
+const updateTags = (article: Article, newTags: readonly TagName[]): Article => ({
   ...article,
-  tags: [...tags],
+  tags: [...newTags],
   updatedAt: new Date(),
 });
 
@@ -76,12 +76,15 @@ const updateAiSummary = (article: Article, aiSummary: string): Article => ({
   updatedAt: new Date(),
 });
 
-export const ArticleEntity = {
+const ArticleEntity = {
   create,
-  reconstruct,
   markAsRead,
   markAsUnread,
+  reconstruct,
+  updateAiSummary,
   updateMemo,
   updateTags,
-  updateAiSummary,
 } as const;
+
+export { ArticleEntity };
+export type { Article };

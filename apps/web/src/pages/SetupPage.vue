@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { computed, ref } from "vue";
+import { useAuth } from "@/composables/use-auth";
 import { useRouter } from "vue-router";
-import { useAuth } from "@/composables/useAuth";
 
 const router = useRouter();
 const auth = useAuth();
@@ -12,38 +12,44 @@ const passwordConfirm = ref("");
 const isSubmitting = ref(false);
 const errorMessage = ref("");
 
-const passwordMismatch = computed(() => {
-  return passwordConfirm.value !== "" && password.value !== passwordConfirm.value;
-});
+const passwordMismatch = computed(
+  (): boolean => passwordConfirm.value !== "" && password.value !== passwordConfirm.value,
+);
 
-const isFormValid = computed(() => {
-  return (
+const isFormValid = computed(
+  (): boolean =>
     username.value.trim() !== "" &&
     password.value.trim() !== "" &&
     passwordConfirm.value.trim() !== "" &&
-    !passwordMismatch.value
-  );
-});
+    !passwordMismatch.value,
+);
 
-async function handleSubmit() {
-  if (!isFormValid.value || isSubmitting.value) return;
+const trySetup = async (): Promise<boolean> => {
+  const success = await auth.setup(username.value, password.value);
+  if (success) {
+    router.push("/");
+    return true;
+  }
+  errorMessage.value = "セットアップに失敗しました。もう一度お試しください。";
+  return false;
+};
+
+const handleSubmit = async (): Promise<void> => {
+  if (!isFormValid.value || isSubmitting.value) {
+    return;
+  }
 
   isSubmitting.value = true;
   errorMessage.value = "";
 
   try {
-    const success = await auth.setup(username.value, password.value);
-    if (success) {
-      router.push("/");
-    } else {
-      errorMessage.value = "セットアップに失敗しました。もう一度お試しください。";
-    }
+    await trySetup();
   } catch {
     errorMessage.value = "セットアップに失敗しました。もう一度お試しください。";
   } finally {
     isSubmitting.value = false;
   }
-}
+};
 </script>
 
 <template>

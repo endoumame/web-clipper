@@ -1,26 +1,26 @@
 import { integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-export const articles = sqliteTable("articles", {
-  id: text("id").primaryKey(),
-  url: text("url").notNull().unique(),
-  title: text("title").notNull(),
-  description: text("description"),
-  source: text("source").notNull(),
-  ogImageUrl: text("og_image_url"),
-  memo: text("memo"),
+const articles = sqliteTable("articles", {
   aiSummary: text("ai_summary"),
-  isRead: integer("is_read", { mode: "boolean" }).notNull().default(false),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  description: text("description"),
+  id: text("id").primaryKey(),
+  isRead: integer("is_read", { mode: "boolean" }).notNull().default(false),
+  memo: text("memo"),
+  ogImageUrl: text("og_image_url"),
+  source: text("source").notNull(),
+  title: text("title").notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  url: text("url").notNull().unique(),
 });
 
-export const tags = sqliteTable("tags", {
+const tags = sqliteTable("tags", {
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
   id: text("id").primaryKey(),
   name: text("name").notNull().unique(),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
 
-export const articleTags = sqliteTable(
+const articleTags = sqliteTable(
   "article_tags",
   {
     articleId: text("article_id")
@@ -33,21 +33,23 @@ export const articleTags = sqliteTable(
   (table) => [primaryKey({ columns: [table.articleId, table.tagId] })],
 );
 
-export const users = sqliteTable("users", {
+const users = sqliteTable("users", {
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  githubId: text("github_id").unique(),
   id: text("id").primaryKey(),
-  username: text("username").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   passwordSalt: text("password_salt").notNull(),
-  githubId: text("github_id").unique(),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  username: text("username").notNull().unique(),
 });
 
-export const sessions = sqliteTable("sessions", {
+const sessions = sqliteTable("sessions", {
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
   id: text("id").primaryKey(),
   userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
+
+export { articles, articleTags, sessions, tags, users };

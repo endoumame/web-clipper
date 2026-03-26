@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { useRoute, useRouter } from "vue-router";
 import { ref } from "vue";
-import { useRouter, useRoute } from "vue-router";
-import { useAuth } from "@/composables/useAuth";
+import { useAuth } from "@/composables/use-auth";
 
 const router = useRouter();
 const route = useRoute();
@@ -12,25 +12,32 @@ const password = ref("");
 const isSubmitting = ref(false);
 const errorMessage = ref("");
 
-async function handleSubmit() {
-  if (isSubmitting.value) return;
+const tryLogin = async function tryLogin(): Promise<boolean> {
+  const success = await auth.login(username.value, password.value);
+  if (success) {
+    router.push((route.query.redirect as string) || "/");
+    return true;
+  }
+  errorMessage.value = "ユーザー名またはパスワードが正しくありません。";
+  return false;
+};
+
+const handleSubmit = async function handleSubmit(): Promise<void> {
+  if (isSubmitting.value) {
+    return;
+  }
 
   isSubmitting.value = true;
   errorMessage.value = "";
 
   try {
-    const success = await auth.login(username.value, password.value);
-    if (success) {
-      router.push((route.query.redirect as string) || "/");
-    } else {
-      errorMessage.value = "ユーザー名またはパスワードが正しくありません。";
-    }
+    await tryLogin();
   } catch {
     errorMessage.value = "ログインに失敗しました。もう一度お試しください。";
   } finally {
     isSubmitting.value = false;
   }
-}
+};
 </script>
 
 <template>

@@ -13,56 +13,54 @@ const SOURCES = [
   "stackoverflow",
   "other",
 ] as const;
-export type Source = (typeof SOURCES)[number];
+
+type Source = (typeof SOURCES)[number];
+
+const EXACT_HOSTNAME_MAP: Readonly<Record<string, Source>> = {
+  "dev.classmethod.jp": "classmethod",
+  "dev.to": "devto",
+  "github.com": "github",
+  "hatenablog.com": "hatena",
+  "hatenablog.jp": "hatena",
+  "medium.com": "medium",
+  "note.com": "note",
+  "qiita.com": "qiita",
+  "stackoverflow.com": "stackoverflow",
+  "twitter.com": "twitter",
+  "x.com": "twitter",
+  "zenn.dev": "zenn",
+};
+
+const matchHatenaSuffix = (hostname: string): boolean =>
+  hostname.endsWith(".hateblo.jp") ||
+  hostname.endsWith(".hatenablog.com") ||
+  hostname.endsWith(".hatenablog.jp");
+
+const matchHostname = (hostname: string): Source | null => {
+  const exact = EXACT_HOSTNAME_MAP[hostname];
+  if (exact) {
+    return exact;
+  }
+  if (matchHatenaSuffix(hostname)) {
+    return "hatena";
+  }
+  return null;
+};
 
 const fromUrl = (url: string): Source => {
-  let hostname: string;
+  let hostname = "";
   try {
-    hostname = new URL(url).hostname;
+    ({ hostname } = new URL(url));
   } catch {
     return "other";
   }
 
-  if (hostname === "twitter.com" || hostname === "x.com") {
-    return "twitter";
-  }
-  if (hostname === "qiita.com") {
-    return "qiita";
-  }
-  if (hostname === "zenn.dev") {
-    return "zenn";
-  }
-  if (
-    hostname.endsWith(".hateblo.jp") ||
-    hostname === "hatenablog.com" ||
-    hostname.endsWith(".hatenablog.com") ||
-    hostname === "hatenablog.jp" ||
-    hostname.endsWith(".hatenablog.jp")
-  ) {
-    return "hatena";
-  }
-  if (hostname === "github.com") {
-    return "github";
-  }
-  if (hostname === "dev.classmethod.jp") {
-    return "classmethod";
-  }
-  if (hostname === "medium.com") {
-    return "medium";
-  }
-  if (hostname === "note.com") {
-    return "note";
-  }
-  if (hostname === "dev.to") {
-    return "devto";
-  }
-  if (hostname === "stackoverflow.com") {
-    return "stackoverflow";
-  }
-
-  return "other";
+  return matchHostname(hostname) ?? "other";
 };
 
 const SourceSchema = z.enum(SOURCES);
 
-export const SourceVO = { values: SOURCES, fromUrl, schema: SourceSchema } as const;
+const SourceVO = { fromUrl, schema: SourceSchema, values: SOURCES } as const;
+
+export { SourceVO };
+export type { Source };

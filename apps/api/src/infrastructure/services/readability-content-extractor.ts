@@ -1,43 +1,65 @@
-import { ResultAsync } from "neverthrow";
-import { Readability } from "@mozilla/readability";
-import { parseHTML } from "linkedom";
-import TurndownService from "turndown";
-import type { ContentExtractor } from "../../domain/article/content-extractor.js";
 import type { ArticleUrl } from "../../domain/article/article-url.js";
+import type { ContentExtractor } from "../../domain/article/content-extractor.js";
 import type { DomainError } from "../../domain/shared/index.js";
+import { Readability } from "@mozilla/readability";
+import { ResultAsync } from "neverthrow";
+import TurndownService from "turndown";
+import { parseHTML } from "linkedom";
 
-export const createReadabilityContentExtractor = (): ContentExtractor => ({
+const fetchAndParseHtml = async (url: ArticleUrl): Promise<{ document: Document }> => {
+  const res = await fetch(url, {
+    headers: { "User-Agent": "web-clipper-bot/1.0" },
+    redirect: "follow",
+  });
+  if (!res.ok) {
+    throw new Error(`HTTP ${String(res.status)}`);
+  }
+  const html = await res.text();
+  return parseHTML(html);
+};
+
+const extractArticleContent = (document: Document): string => {
+  const reader = new Readability(document);
+  const article = reader.parse();
+
+  if (
+    article === null ||
+    article.content === null ||
+    typeof article.content !== "string" ||
+    article.content === ""
+  ) {
+    throw new Error("Failed to extract article content");
+  }
+
+  return article.content;
+};
+
+const convertToMarkdown = (content: string): string => {
+  const { document: contentDoc } = parseHTML(content);
+  const turndown = new TurndownService({ headingStyle: "atx" });
+  return turndown.turndown(contentDoc.documentElement);
+};
+
+const createReadabilityContentExtractor = (): ContentExtractor => ({
   extract: (url: ArticleUrl): ResultAsync<string, DomainError> =>
     ResultAsync.fromPromise(
-      (async () => {
-        const res = await fetch(url, {
-          headers: { "User-Agent": "web-clipper-bot/1.0" },
-          redirect: "follow",
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const html = await res.text();
-
-        const { document } = parseHTML(html);
-        const reader = new Readability(document);
-        const article = reader.parse();
-
-        if (!article?.content) {
-          throw new Error("Failed to extract article content");
-        }
-
-        // Parse article HTML via linkedom so turndown receives a DOM node
-        // instead of a string — avoids turndown's internal DOMParser which
-        // relies on the global `document` (unavailable in Workers).
-        const { document: contentDoc } = parseHTML(article.content);
-        const turndown = new TurndownService({ headingStyle: "atx" });
-        const markdown = turndown.turndown(contentDoc.documentElement);
-
-        return markdown;
+      (async (): Promise<string> => {
+        const { document } = await fetchAndParseHtml(url);
+        const content = extractArticleContent(document);
+        return convertToMarkdown(content);
       })(),
-      (error): DomainError => ({
-        type: "METADATA_FETCH_FAILED",
-        url,
-        cause: error instanceof Error ? error.message : String(error),
-      }),
+      (error: unknown): DomainError => {
+        let causeMessage = String(error);
+        if (error instanceof Error) {
+          causeMessage = error.message;
+        }
+        return {
+          cause: causeMessage,
+          type: "METADATA_FETCH_FAILED",
+          url,
+        };
+      },
     ),
 });
+
+export { createReadabilityContentExtractor };

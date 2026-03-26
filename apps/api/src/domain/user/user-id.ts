@@ -1,17 +1,21 @@
-import { z } from "zod";
-import { ok, err, type Result } from "neverthrow";
-import { nanoid } from "nanoid";
+import { err, ok } from "neverthrow";
 import type { DomainError } from "../shared/errors.js";
+import type { Result } from "neverthrow";
+import { nanoid } from "nanoid";
+import { z } from "zod";
 
-const UserIdSchema = z.string().min(1).brand<"UserId">();
-export type UserId = z.infer<typeof UserIdSchema>;
+const MIN_LENGTH = 1;
+
+const UserIdSchema = z.string().min(MIN_LENGTH).brand<"UserId">();
+
+type UserId = z.infer<typeof UserIdSchema>;
 
 const create = (input: string): Result<UserId, DomainError> => {
   const parsed = UserIdSchema.safeParse(input);
   if (!parsed.success) {
     return err({
-      type: "INVALID_USER_ID" as const,
       message: parsed.error.message,
+      type: "INVALID_USER_ID" as const,
     });
   }
   return ok(parsed.data);
@@ -22,4 +26,7 @@ const generate = (): UserId => {
   return UserIdSchema.parse(id);
 };
 
-export const UserIdVO = { create, generate, schema: UserIdSchema } as const;
+const UserIdVO = { create, generate, schema: UserIdSchema } as const;
+
+export { UserIdVO };
+export type { UserId };

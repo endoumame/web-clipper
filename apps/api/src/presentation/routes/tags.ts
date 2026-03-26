@@ -1,21 +1,23 @@
-import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import {
   CreateTagInputSchema,
+  ErrorResponseSchema,
   TagListResponseSchema,
   TagResponseSchema,
-  ErrorResponseSchema,
 } from "@web-clipper/shared";
-import type { AppEnv } from "../types.js";
-import { domainErrorToResponse, domainErrorToStatus } from "../middleware/error-handler.js";
+import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import { createTag, deleteTag } from "../../application/commands/index.js";
+import { domainErrorToResponse, domainErrorToStatus } from "../middleware/error-handler.js";
+import type { AppEnv } from "../types.js";
+
+// oxlint-disable no-magic-numbers -- HTTP status codes are self-documenting in route handler context
+
+const INITIAL_ARTICLE_COUNT = 0;
 
 // --- Route definitions ---
 
 const listTagsRoute = createRoute({
   method: "get",
   path: "/api/tags",
-  tags: ["Tags"],
-  summary: "List all tags with article count",
   responses: {
     200: {
       content: {
@@ -26,13 +28,13 @@ const listTagsRoute = createRoute({
       description: "List of tags",
     },
   },
+  summary: "List all tags with article count",
+  tags: ["Tags"],
 });
 
 const createTagRoute = createRoute({
   method: "post",
   path: "/api/tags",
-  tags: ["Tags"],
-  summary: "Create a new tag",
   request: {
     body: {
       content: {
@@ -69,13 +71,13 @@ const createTagRoute = createRoute({
       description: "Tag already exists",
     },
   },
+  summary: "Create a new tag",
+  tags: ["Tags"],
 });
 
 const deleteTagRoute = createRoute({
   method: "delete",
   path: "/api/tags/{id}",
-  tags: ["Tags"],
-  summary: "Delete a tag",
   request: {
     params: z.object({
       id: z.string().openapi({ description: "Tag ID" }),
@@ -94,50 +96,54 @@ const deleteTagRoute = createRoute({
       description: "Tag not found",
     },
   },
+  summary: "Delete a tag",
+  tags: ["Tags"],
 });
 
 // --- App with handlers ---
 
-export const tagRoutes = new OpenAPIHono<AppEnv>()
-  .openapi(listTagsRoute, async (c) => {
-    const deps = c.get("deps");
+const tagRoutes = new OpenAPIHono<AppEnv>()
+  .openapi(listTagsRoute, async (ctx) => {
+    const deps = ctx.get("deps");
     const result = await deps.tagQuery.list();
-    return c.json(
+    return ctx.json(
       {
-        tags: result.map((t) => ({
-          id: t.id,
-          name: t.name,
-          articleCount: t.articleCount,
-          createdAt: t.createdAt.toISOString(),
+        tags: result.map((tag) => ({
+          articleCount: tag.articleCount,
+          createdAt: tag.createdAt.toISOString(),
+          id: tag.id,
+          name: tag.name,
         })),
       },
       200,
     );
   })
-  .openapi(createTagRoute, async (c) => {
-    const deps = c.get("deps");
-    const { name } = c.req.valid("json");
+  .openapi(createTagRoute, async (ctx) => {
+    const deps = ctx.get("deps");
+    const { name } = ctx.req.valid("json");
     const result = await createTag({ tagRepo: deps.tagRepo })(name);
     return result.match(
       (tag) =>
-        c.json(
+        ctx.json(
           {
+            articleCount: INITIAL_ARTICLE_COUNT,
+            createdAt: tag.createdAt.toISOString(),
             id: tag.id,
             name: tag.name,
-            articleCount: 0,
-            createdAt: tag.createdAt.toISOString(),
           },
           201,
         ),
-      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<400 | 409>(error)),
+      (error) => ctx.json(domainErrorToResponse(error), domainErrorToStatus<400 | 409>(error)),
     );
   })
-  .openapi(deleteTagRoute, async (c) => {
-    const deps = c.get("deps");
-    const { id } = c.req.valid("param");
+  .openapi(deleteTagRoute, async (ctx) => {
+    const deps = ctx.get("deps");
+    const { id } = ctx.req.valid("param");
     const result = await deleteTag({ tagRepo: deps.tagRepo })(id);
     return result.match(
-      () => c.body(null, 204),
-      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<404>(error)),
+      () => ctx.body(null, 204),
+      (error) => ctx.json(domainErrorToResponse(error), domainErrorToStatus<404>(error)),
     );
   });
+
+export { tagRoutes };

@@ -1,14 +1,24 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from "vue";
-import { RouterLink } from "vue-router";
-import { useApi } from "@/composables/useApi";
-import { useViewTransition } from "@/composables/useViewTransition";
+import { computed, onMounted, ref, watch } from "vue";
+import {
+  extractDomain,
+  formatRelativeDate,
+  sourceBadgeStyles,
+  sourceLabels,
+} from "@/utils/article-helpers";
 import type { Article } from "@/types/article";
+import { RouterLink } from "vue-router";
+import { useApi } from "@/composables/use-api";
+import { useViewTransition } from "@/composables/use-view-transition";
 
 defineOptions({ name: "HomePage" });
 
 const api = useApi();
 const { transitioningArticleId, startTransition } = useViewTransition();
+
+// Magic number constants
+const DEBOUNCE_MS = 300;
+const EMPTY_LENGTH = 0;
 
 // --- State ---
 const searchQuery = ref("");
@@ -21,71 +31,57 @@ const isLoadingMore = ref(false);
 
 // --- Source filters ---
 const sourceFilters = [
-  { value: "", label: "全て" },
-  { value: "twitter", label: "Twitter" },
-  { value: "qiita", label: "Qiita" },
-  { value: "zenn", label: "Zenn" },
-  { value: "hatena", label: "はてな" },
-  { value: "github", label: "GitHub" },
-  { value: "classmethod", label: "DevelopersIO" },
-  { value: "medium", label: "Medium" },
-  { value: "note", label: "note" },
-  { value: "devto", label: "DEV" },
-  { value: "stackoverflow", label: "Stack Overflow" },
-  { value: "other", label: "その他" },
+  { label: "全て", value: "" },
+  { label: "Twitter", value: "twitter" },
+  { label: "Qiita", value: "qiita" },
+  { label: "Zenn", value: "zenn" },
+  { label: "はてな", value: "hatena" },
+  { label: "GitHub", value: "github" },
+  { label: "DevelopersIO", value: "classmethod" },
+  { label: "Medium", value: "medium" },
+  { label: "note", value: "note" },
+  { label: "DEV", value: "devto" },
+  { label: "Stack Overflow", value: "stackoverflow" },
+  { label: "その他", value: "other" },
 ] as const;
-
-const sourceBadgeStyles: Record<string, string> = {
-  twitter: "bg-info/15 text-info",
-  qiita: "bg-success/15 text-success",
-  zenn: "bg-purple/15 text-purple",
-  hatena: "bg-error/15 text-error",
-  github: "bg-foreground/15 text-foreground",
-  classmethod: "bg-warning/15 text-warning",
-  medium: "bg-foreground/15 text-foreground",
-  note: "bg-success/15 text-success",
-  devto: "bg-foreground/15 text-foreground",
-  stackoverflow: "bg-warning/15 text-warning",
-  other: "bg-muted/15 text-muted",
-};
-
-const sourceLabels: Record<string, string> = {
-  twitter: "Twitter",
-  qiita: "Qiita",
-  zenn: "Zenn",
-  hatena: "はてな",
-  github: "GitHub",
-  classmethod: "DevelopersIO",
-  medium: "Medium",
-  note: "note",
-  devto: "DEV",
-  stackoverflow: "Stack Overflow",
-  other: "その他",
-};
 
 // --- Debounce ---
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 watch(searchQuery, (val) => {
-  if (debounceTimer) clearTimeout(debounceTimer);
+  if (debounceTimer) {
+    clearTimeout(debounceTimer);
+  }
   debounceTimer = setTimeout(() => {
     debouncedQuery.value = val;
-  }, 300);
+  }, DEBOUNCE_MS);
 });
 
 // --- Fetch articles ---
-async function fetchArticles(cursor?: string) {
+const buildQuery = function buildQuery(cursor?: string): Record<string, string> {
   const query: Record<string, string> = {};
-  if (debouncedQuery.value) query.q = debouncedQuery.value;
-  if (selectedSource.value) query.source = selectedSource.value;
-  if (cursor) query.cursor = cursor;
+  if (debouncedQuery.value) {
+    query.search = debouncedQuery.value;
+  }
+  if (selectedSource.value) {
+    query.source = selectedSource.value;
+  }
+  if (cursor) {
+    query.cursor = cursor;
+  }
+  return query;
+};
 
+const fetchArticles = async function fetchArticles(
+  cursor?: string,
+): Promise<{ articles: Article[]; nextCursor: string | null }> {
+  const query = buildQuery(cursor);
   const res = await api.api.articles.$get({ query });
   const data = await res.json();
   return data;
-}
+};
 
-async function loadArticles() {
+const loadArticles = async function loadArticles(): Promise<void> {
   isLoading.value = true;
   try {
     const data = await fetchArticles();
@@ -94,10 +90,12 @@ async function loadArticles() {
   } finally {
     isLoading.value = false;
   }
-}
+};
 
-async function loadMore() {
-  if (!nextCursor.value || isLoadingMore.value) return;
+const loadMore = async function loadMore(): Promise<void> {
+  if (!nextCursor.value || isLoadingMore.value) {
+    return;
+  }
   isLoadingMore.value = true;
   try {
     const data = await fetchArticles(nextCursor.value);
@@ -106,42 +104,14 @@ async function loadMore() {
   } finally {
     isLoadingMore.value = false;
   }
-}
+};
 
 // --- Reload on filter change ---
 watch([debouncedQuery, selectedSource], () => {
   loadArticles();
 });
 
-// --- Helpers ---
-function extractDomain(url: string): string {
-  try {
-    return new URL(url).hostname;
-  } catch {
-    return url;
-  }
-}
-
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMin = Math.floor(diffMs / 60000);
-  const diffHour = Math.floor(diffMs / 3600000);
-  const diffDay = Math.floor(diffMs / 86400000);
-
-  if (diffMin < 1) return "たった今";
-  if (diffMin < 60) return `${diffMin}分前`;
-  if (diffHour < 24) return `${diffHour}時間前`;
-  if (diffDay < 7) return `${diffDay}日前`;
-
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}/${m}/${d}`;
-}
-
-const isEmpty = computed(() => !isLoading.value && articles.value.length === 0);
+const isEmpty = computed((): boolean => !isLoading.value && articles.value.length === EMPTY_LENGTH);
 
 // --- Init ---
 onMounted(() => {
@@ -314,7 +284,7 @@ onMounted(() => {
 
             <!-- Date -->
             <span class="text-muted/70 text-xs ml-auto font-body">
-              {{ formatDate(article.createdAt) }}
+              {{ formatRelativeDate(article.createdAt) }}
             </span>
           </div>
         </div>

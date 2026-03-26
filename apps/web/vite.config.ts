@@ -1,20 +1,22 @@
 import { defineConfig } from "vite";
+import unoCSS from "unocss/vite";
 import vue from "@vitejs/plugin-vue";
-import UnoCSS from "unocss/vite";
-import { resolve } from "node:path";
 
+const srcAlias: string = new URL("src", import.meta.url).pathname;
+
+// eslint-disable-next-line import/no-default-export
 export default defineConfig({
-  plugins: [vue(), UnoCSS()],
+  plugins: [vue(), unoCSS()],
   resolve: {
     alias: {
-      "@": resolve(__dirname, "src"),
+      "@": srcAlias,
     },
   },
   server: {
     proxy: {
       "/api": {
-        target: "http://localhost:8787",
         changeOrigin: true,
+        target: "http://localhost:8787",
       },
     },
   },

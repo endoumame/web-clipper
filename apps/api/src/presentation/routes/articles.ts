@@ -1,348 +1,157 @@
-import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
-import {
-  CreateArticleInputSchema,
-  UpdateArticleInputSchema,
-  ArticleResponseSchema,
-  ArticleListResponseSchema,
-  ArticleQueryParamsSchema,
-  ErrorResponseSchema,
-  SourceSchema,
-} from "@web-clipper/shared";
-import type { AppEnv } from "../types.js";
-import { domainErrorToResponse, domainErrorToStatus } from "../middleware/error-handler.js";
 import {
   clipArticle,
-  updateArticle,
   deleteArticle,
   generateSummary,
+  updateArticle,
 } from "../../application/commands/index.js";
+import {
+  createArticleRoute,
+  deleteArticleRoute,
+  generateSummaryRoute,
+  getArticleRoute,
+  listArticlesRoute,
+  updateArticleRoute,
+} from "./article-route-defs.js";
+import { domainErrorToResponse, domainErrorToStatus } from "../middleware/error-handler.js";
+import type { AppEnv } from "../types.js";
+import { OpenAPIHono } from "@hono/zod-openapi";
+import type { Source } from "../../domain/article/source.js";
+import { SourceSchema } from "@web-clipper/shared";
 
-const toArticleResponse = (article: {
-  id: string;
-  url: string;
-  title: string;
-  description: string | null;
-  source: string;
-  ogImageUrl: string | null;
-  memo: string | null;
+// oxlint-disable no-magic-numbers -- HTTP status codes are self-documenting in route handler context
+
+interface ArticleInput {
   aiSummary: string | null;
-  isRead: boolean;
-  tags: readonly string[];
   createdAt: Date;
+  description: string | null;
+  id: string;
+  isRead: boolean;
+  memo: string | null;
+  ogImageUrl: string | null;
+  source: Source;
+  tags: readonly string[];
+  title: string;
   updatedAt: Date;
-}) => ({
-  id: article.id,
-  url: article.url,
-  title: article.title,
-  description: article.description,
-  source: SourceSchema.parse(article.source),
-  ogImageUrl: article.ogImageUrl,
-  memo: article.memo,
+  url: string;
+}
+
+const toArticleResponse = (
+  article: ArticleInput,
+): {
+  aiSummary: string | null;
+  createdAt: string;
+  description: string | null;
+  id: string;
+  isRead: boolean;
+  memo: string | null;
+  ogImageUrl: string | null;
+  source: Source;
+  tags: string[];
+  title: string;
+  updatedAt: string;
+  url: string;
+} => ({
   aiSummary: article.aiSummary,
-  isRead: article.isRead,
-  tags: [...article.tags],
   createdAt: article.createdAt.toISOString(),
+  description: article.description,
+  id: article.id,
+  isRead: article.isRead,
+  memo: article.memo,
+  ogImageUrl: article.ogImageUrl,
+  source: SourceSchema.parse(article.source),
+  tags: [...article.tags],
+  title: article.title,
   updatedAt: article.updatedAt.toISOString(),
+  url: article.url,
 });
 
-// --- Route definitions ---
-
-const listArticlesRoute = createRoute({
-  method: "get",
-  path: "/api/articles",
-  tags: ["Articles"],
-  summary: "List articles",
-  request: {
-    query: ArticleQueryParamsSchema.openapi("ArticleQueryParams"),
-  },
-  responses: {
-    200: {
-      content: {
-        "application/json": {
-          schema: ArticleListResponseSchema.openapi("ArticleListResponse"),
-        },
-      },
-      description: "List of articles",
-    },
-  },
-});
-
-const getArticleRoute = createRoute({
-  method: "get",
-  path: "/api/articles/{id}",
-  tags: ["Articles"],
-  summary: "Get article detail",
-  request: {
-    params: z.object({
-      id: z.string().openapi({ description: "Article ID" }),
-    }),
-  },
-  responses: {
-    200: {
-      content: {
-        "application/json": {
-          schema: ArticleResponseSchema.openapi("ArticleResponse"),
-        },
-      },
-      description: "Article detail",
-    },
-    404: {
-      content: {
-        "application/json": {
-          schema: ErrorResponseSchema.openapi("ErrorResponse"),
-        },
-      },
-      description: "Article not found",
-    },
-  },
-});
-
-const createArticleRoute = createRoute({
-  method: "post",
-  path: "/api/articles",
-  tags: ["Articles"],
-  summary: "Clip a new article",
-  request: {
-    body: {
-      content: {
-        "application/json": {
-          schema: CreateArticleInputSchema.openapi("CreateArticleInput"),
-        },
-      },
-      required: true,
-    },
-  },
-  responses: {
-    201: {
-      content: {
-        "application/json": {
-          schema: ArticleResponseSchema.openapi("ArticleCreatedResponse"),
-        },
-      },
-      description: "Article created",
-    },
-    400: {
-      content: {
-        "application/json": {
-          schema: ErrorResponseSchema.openapi("ValidationError"),
-        },
-      },
-      description: "Validation error",
-    },
-    409: {
-      content: {
-        "application/json": {
-          schema: ErrorResponseSchema.openapi("ConflictError"),
-        },
-      },
-      description: "Article already exists",
-    },
-    502: {
-      content: {
-        "application/json": {
-          schema: ErrorResponseSchema.openapi("MetadataFetchError"),
-        },
-      },
-      description: "Failed to fetch metadata",
-    },
-  },
-});
-
-const updateArticleRoute = createRoute({
-  method: "put",
-  path: "/api/articles/{id}",
-  tags: ["Articles"],
-  summary: "Update an article",
-  request: {
-    params: z.object({
-      id: z.string().openapi({ description: "Article ID" }),
-    }),
-    body: {
-      content: {
-        "application/json": {
-          schema: UpdateArticleInputSchema.openapi("UpdateArticleInput"),
-        },
-      },
-      required: true,
-    },
-  },
-  responses: {
-    200: {
-      content: {
-        "application/json": {
-          schema: ArticleResponseSchema.openapi("ArticleUpdatedResponse"),
-        },
-      },
-      description: "Article updated",
-    },
-    400: {
-      content: {
-        "application/json": {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: "Validation error",
-    },
-    404: {
-      content: {
-        "application/json": {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: "Article not found",
-    },
-  },
-});
-
-const generateSummaryRoute = createRoute({
-  method: "post",
-  path: "/api/articles/{id}/summary",
-  tags: ["Articles"],
-  summary: "Generate AI summary for an article",
-  request: {
-    params: z.object({
-      id: z.string().openapi({ description: "Article ID" }),
-    }),
-  },
-  responses: {
-    200: {
-      content: {
-        "application/json": {
-          schema: ArticleResponseSchema.openapi("ArticleSummaryResponse"),
-        },
-      },
-      description: "Summary generated",
-    },
-    404: {
-      content: {
-        "application/json": {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: "Article not found",
-    },
-    502: {
-      content: {
-        "application/json": {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: "Summary generation failed",
-    },
-  },
-});
-
-const deleteArticleRoute = createRoute({
-  method: "delete",
-  path: "/api/articles/{id}",
-  tags: ["Articles"],
-  summary: "Delete an article",
-  request: {
-    params: z.object({
-      id: z.string().openapi({ description: "Article ID" }),
-    }),
-  },
-  responses: {
-    204: {
-      description: "Article deleted",
-    },
-    404: {
-      content: {
-        "application/json": {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: "Article not found",
-    },
-  },
-});
-
-// --- App with handlers ---
-
-export const articleRoutes = new OpenAPIHono<AppEnv>()
-  .openapi(listArticlesRoute, async (c) => {
-    const deps = c.get("deps");
-    const query = c.req.valid("query");
+const articleRoutes = new OpenAPIHono<AppEnv>()
+  .openapi(listArticlesRoute, async (ctx) => {
+    const deps = ctx.get("deps");
+    const query = ctx.req.valid("query");
     const result = await deps.articleQuery.list({
+      cursor: query.cursor,
+      isRead: query.isRead,
+      limit: query.limit,
+      search: query.search,
       source: query.source,
       tagName: query.tagId,
-      isRead: query.isRead,
-      search: query.q,
-      cursor: query.cursor,
-      limit: query.limit,
     });
-    return c.json(
+    return ctx.json(
       {
-        articles: result.articles.map((a) => ({
-          ...a,
-          memo: null,
+        articles: result.articles.map((item) => ({
+          ...item,
           aiSummary: null,
+          createdAt: item.createdAt.toISOString(),
+          description: item.description ?? null,
+          memo: null,
+          ogImageUrl: item.ogImageUrl ?? null,
+          source: SourceSchema.parse(item.source),
           tags: [],
-          source: SourceSchema.parse(a.source),
-          updatedAt: a.createdAt.toISOString(),
-          createdAt: a.createdAt.toISOString(),
-          ogImageUrl: a.ogImageUrl ?? null,
-          description: a.description ?? null,
+          updatedAt: item.createdAt.toISOString(),
         })),
         nextCursor: result.nextCursor,
       },
       200,
     );
   })
-  .openapi(getArticleRoute, async (c) => {
-    const deps = c.get("deps");
-    const { id } = c.req.valid("param");
+  .openapi(getArticleRoute, async (ctx) => {
+    const deps = ctx.get("deps");
+    const { id } = ctx.req.valid("param");
     const article = await deps.articleQuery.getById(id);
     if (!article) {
-      return c.json({ error: "ARTICLE_NOT_FOUND", message: `Not found: ${id}` }, 404);
+      return ctx.json({ error: "ARTICLE_NOT_FOUND", message: `Not found: ${id}` }, 404);
     }
-    return c.json(toArticleResponse(article), 200);
+    return ctx.json(toArticleResponse(article), 200);
   })
-  .openapi(createArticleRoute, async (c) => {
-    const deps = c.get("deps");
-    const body = c.req.valid("json");
+  .openapi(createArticleRoute, async (ctx) => {
+    const deps = ctx.get("deps");
+    const body = ctx.req.valid("json");
     const result = await clipArticle({
       articleRepo: deps.articleRepo,
       metadataFetcher: deps.metadataFetcher,
-    })({ url: body.url, tags: body.tags, memo: body.memo });
+    })({ memo: body.memo, tags: body.tags, url: body.url });
     return result.match(
-      (article) => c.json(toArticleResponse(article), 201),
-      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<400 | 409 | 502>(error)),
+      (article) => ctx.json(toArticleResponse(article), 201),
+      (error) =>
+        ctx.json(domainErrorToResponse(error), domainErrorToStatus<400 | 409 | 502>(error)),
     );
   })
-  .openapi(updateArticleRoute, async (c) => {
-    const deps = c.get("deps");
-    const { id } = c.req.valid("param");
-    const body = c.req.valid("json");
+  .openapi(updateArticleRoute, async (ctx) => {
+    const deps = ctx.get("deps");
+    const { id } = ctx.req.valid("param");
+    const body = ctx.req.valid("json");
     const result = await updateArticle({
       articleRepo: deps.articleRepo,
     })({ id, ...body });
     return result.match(
-      (article) => c.json(toArticleResponse(article), 200),
-      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<400 | 404>(error)),
+      (article) => ctx.json(toArticleResponse(article), 200),
+      (error) => ctx.json(domainErrorToResponse(error), domainErrorToStatus<400 | 404>(error)),
     );
   })
-  .openapi(generateSummaryRoute, async (c) => {
-    const deps = c.get("deps");
-    const { id } = c.req.valid("param");
+  .openapi(generateSummaryRoute, async (ctx) => {
+    const deps = ctx.get("deps");
+    const { id } = ctx.req.valid("param");
     const result = await generateSummary({
       articleRepo: deps.articleRepo,
       contentExtractor: deps.contentExtractor,
       summarizer: deps.summarizer,
     })(id);
     return result.match(
-      (article) => c.json(toArticleResponse(article), 200),
-      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<404 | 502>(error)),
+      (article) => ctx.json(toArticleResponse(article), 200),
+      (error) => ctx.json(domainErrorToResponse(error), domainErrorToStatus<404 | 502>(error)),
     );
   })
-  .openapi(deleteArticleRoute, async (c) => {
-    const deps = c.get("deps");
-    const { id } = c.req.valid("param");
+  .openapi(deleteArticleRoute, async (ctx) => {
+    const deps = ctx.get("deps");
+    const { id } = ctx.req.valid("param");
     const result = await deleteArticle({
       articleRepo: deps.articleRepo,
     })(id);
     return result.match(
-      () => c.body(null, 204),
-      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<404>(error)),
+      () => ctx.body(null, 204),
+      (error) => ctx.json(domainErrorToResponse(error), domainErrorToStatus<404>(error)),
     );
   });
+
+export { articleRoutes };

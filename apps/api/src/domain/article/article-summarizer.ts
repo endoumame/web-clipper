@@ -1,6 +1,8 @@
-import type { ResultAsync } from "neverthrow";
 import type { DomainError } from "../shared/errors.js";
+import type { ResultAsync } from "neverthrow";
 
-export type ArticleSummarizer = {
+interface ArticleSummarizer {
   readonly summarize: (text: string) => ResultAsync<string, DomainError>;
-};
+}
+
+export type { ArticleSummarizer };
