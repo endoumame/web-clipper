@@ -1,66 +1,76 @@
-import { ResultAsync } from "neverthrow";
-import { eq } from "drizzle-orm";
-import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { TagNameVO, type TagRepository, type Tag, type TagName } from "../../domain/tag/index.js";
+import type { Tag, TagName, TagRepository } from "../../domain/tag/index.js";
 import type { DomainError } from "../../domain/shared/index.js";
+import type { DrizzleD1Database } from "drizzle-orm/d1";
+import { ResultAsync } from "neverthrow";
+import { TagNameVO } from "../../domain/tag/index.js";
+import { eq } from "drizzle-orm";
 import { tags } from "./schema.js";
 
 const toStorageError = (error: unknown): DomainError => ({
-  type: "STORAGE_ERROR",
   cause: error,
+  type: "STORAGE_ERROR",
 });
 
 const toDomain = (row: { id: string; name: string; createdAt: Date }): Tag => ({
+  createdAt: row.createdAt,
   id: row.id,
   name: TagNameVO.schema.parse(row.name),
-  createdAt: row.createdAt,
 });
 
+const deleteTagById = (db: DrizzleD1Database, id: string): ResultAsync<void, DomainError> =>
+  ResultAsync.fromPromise(
+    db
+      .delete(tags)
+      .where(eq(tags.id, id))
+      .run()
+      .then(() => {
+        // Void return
+      }),
+    toStorageError,
+  );
+
+const findTagByColumn = (
+  db: DrizzleD1Database,
+  condition: () => ReturnType<typeof eq>,
+): ResultAsync<Tag | null, DomainError> =>
+  ResultAsync.fromPromise(
+    (async (): Promise<Tag | null> => {
+      const row = await db.select().from(tags).where(condition()).get();
+      if (row) {
+        return toDomain(row);
+      }
+      return null;
+    })(),
+    toStorageError,
+  );
+
+const saveTag = (db: DrizzleD1Database, tag: Tag): ResultAsync<Tag, DomainError> =>
+  ResultAsync.fromPromise(
+    (async (): Promise<Tag> => {
+      await db
+        .insert(tags)
+        .values({
+          createdAt: tag.createdAt,
+          id: tag.id,
+          name: tag.name,
+        })
+        .onConflictDoUpdate({
+          set: { name: tag.name },
+          target: tags.id,
+        });
+      return tag;
+    })(),
+    toStorageError,
+  );
+
 export const createD1TagRepository = (db: DrizzleD1Database): TagRepository => ({
-  findByName: (name: TagName): ResultAsync<Tag | null, DomainError> =>
-    ResultAsync.fromPromise(
-      (async () => {
-        const row = await db.select().from(tags).where(eq(tags.name, name)).get();
-        return row ? toDomain(row) : null;
-      })(),
-      toStorageError,
-    ),
+  deleteById: (id: string): ResultAsync<void, DomainError> => deleteTagById(db, id),
 
   findById: (id: string): ResultAsync<Tag | null, DomainError> =>
-    ResultAsync.fromPromise(
-      (async () => {
-        const row = await db.select().from(tags).where(eq(tags.id, id)).get();
-        return row ? toDomain(row) : null;
-      })(),
-      toStorageError,
-    ),
+    findTagByColumn(db, () => eq(tags.id, id)),
 
-  save: (tag: Tag): ResultAsync<Tag, DomainError> =>
-    ResultAsync.fromPromise(
-      (async () => {
-        await db
-          .insert(tags)
-          .values({
-            id: tag.id,
-            name: tag.name,
-            createdAt: tag.createdAt,
-          })
-          .onConflictDoUpdate({
-            target: tags.id,
-            set: { name: tag.name },
-          });
-        return tag;
-      })(),
-      toStorageError,
-    ),
+  findByName: (name: TagName): ResultAsync<Tag | null, DomainError> =>
+    findTagByColumn(db, () => eq(tags.name, name)),
 
-  deleteById: (id: string): ResultAsync<void, DomainError> =>
-    ResultAsync.fromPromise(
-      db
-        .delete(tags)
-        .where(eq(tags.id, id))
-        .run()
-        .then(() => undefined),
-      toStorageError,
-    ),
+  save: (tag: Tag): ResultAsync<Tag, DomainError> => saveTag(db, tag),
 });

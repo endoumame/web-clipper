@@ -1,17 +1,21 @@
-import { z } from "zod";
-import { ok, err, type Result } from "neverthrow";
-import { nanoid } from "nanoid";
+import { err, ok } from "neverthrow";
 import type { DomainError } from "../shared/errors.js";
+import type { Result } from "neverthrow";
+import { nanoid } from "nanoid";
+import { z } from "zod";
 
-const ArticleIdSchema = z.string().min(1).brand<"ArticleId">();
-export type ArticleId = z.infer<typeof ArticleIdSchema>;
+const MIN_LENGTH = 1;
+
+const ArticleIdSchema = z.string().min(MIN_LENGTH).brand<"ArticleId">();
+
+type ArticleId = z.infer<typeof ArticleIdSchema>;
 
 const create = (input: string): Result<ArticleId, DomainError> => {
   const parsed = ArticleIdSchema.safeParse(input);
   if (!parsed.success) {
     return err({
-      type: "INVALID_ARTICLE_ID" as const,
       message: parsed.error.message,
+      type: "INVALID_ARTICLE_ID" as const,
     });
   }
   return ok(parsed.data);
@@ -22,4 +26,7 @@ const generate = (): ArticleId => {
   return ArticleIdSchema.parse(id);
 };
 
-export const ArticleIdVO = { create, generate, schema: ArticleIdSchema } as const;
+const ArticleIdVO = { create, generate, schema: ArticleIdSchema } as const;
+
+export { ArticleIdVO };
+export type { ArticleId };

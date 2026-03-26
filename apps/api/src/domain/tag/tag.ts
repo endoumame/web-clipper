@@ -1,22 +1,25 @@
 import type { TagName } from "./tag-name.js";
 
-export type Tag = {
+interface Tag {
   readonly id: string;
   readonly name: TagName;
   readonly createdAt: Date;
-};
+}
 
-type CreateParams = {
+interface CreateParams {
   readonly id: string;
   readonly name: TagName;
-};
+}
 
 const create = (params: CreateParams): Tag => ({
+  createdAt: new Date(),
   id: params.id,
   name: params.name,
-  createdAt: new Date(),
 });
 
-export const TagEntity = {
+const TagEntity = {
   create,
 } as const;
+
+export { TagEntity };
+export type { Tag };

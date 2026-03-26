@@ -1,23 +1,31 @@
-import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import {
   CreateTagInputSchema,
+  ErrorResponseSchema,
   TagListResponseSchema,
   TagResponseSchema,
-  ErrorResponseSchema,
 } from "@web-clipper/shared";
-import type { AppEnv } from "../types.js";
-import { domainErrorToResponse, domainErrorToStatus } from "../middleware/error-handler.js";
+import {
+  HTTP_BAD_REQUEST,
+  HTTP_CONFLICT,
+  HTTP_CREATED,
+  HTTP_NOT_FOUND,
+  HTTP_NO_CONTENT,
+  HTTP_OK,
+} from "../http-status.js";
+import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import { createTag, deleteTag } from "../../application/commands/index.js";
+import { domainErrorToResponse, domainErrorToStatus } from "../middleware/error-handler.js";
+import type { AppEnv } from "../types.js";
+
+const INITIAL_ARTICLE_COUNT = 0;
 
 // --- Route definitions ---
 
 const listTagsRoute = createRoute({
   method: "get",
   path: "/api/tags",
-  tags: ["Tags"],
-  summary: "List all tags with article count",
   responses: {
-    200: {
+    [HTTP_OK]: {
       content: {
         "application/json": {
           schema: TagListResponseSchema.openapi("TagListResponse"),
@@ -26,13 +34,13 @@ const listTagsRoute = createRoute({
       description: "List of tags",
     },
   },
+  summary: "List all tags with article count",
+  tags: ["Tags"],
 });
 
 const createTagRoute = createRoute({
   method: "post",
   path: "/api/tags",
-  tags: ["Tags"],
-  summary: "Create a new tag",
   request: {
     body: {
       content: {
@@ -44,7 +52,7 @@ const createTagRoute = createRoute({
     },
   },
   responses: {
-    201: {
+    [HTTP_CREATED]: {
       content: {
         "application/json": {
           schema: TagResponseSchema.openapi("TagCreatedResponse"),
@@ -52,7 +60,7 @@ const createTagRoute = createRoute({
       },
       description: "Tag created",
     },
-    400: {
+    [HTTP_BAD_REQUEST]: {
       content: {
         "application/json": {
           schema: ErrorResponseSchema,
@@ -60,7 +68,7 @@ const createTagRoute = createRoute({
       },
       description: "Validation error",
     },
-    409: {
+    [HTTP_CONFLICT]: {
       content: {
         "application/json": {
           schema: ErrorResponseSchema,
@@ -69,23 +77,23 @@ const createTagRoute = createRoute({
       description: "Tag already exists",
     },
   },
+  summary: "Create a new tag",
+  tags: ["Tags"],
 });
 
 const deleteTagRoute = createRoute({
   method: "delete",
   path: "/api/tags/{id}",
-  tags: ["Tags"],
-  summary: "Delete a tag",
   request: {
     params: z.object({
       id: z.string().openapi({ description: "Tag ID" }),
     }),
   },
   responses: {
-    204: {
+    [HTTP_NO_CONTENT]: {
       description: "Tag deleted",
     },
-    404: {
+    [HTTP_NOT_FOUND]: {
       content: {
         "application/json": {
           schema: ErrorResponseSchema,
@@ -94,50 +102,59 @@ const deleteTagRoute = createRoute({
       description: "Tag not found",
     },
   },
+  summary: "Delete a tag",
+  tags: ["Tags"],
 });
 
 // --- App with handlers ---
 
-export const tagRoutes = new OpenAPIHono<AppEnv>()
-  .openapi(listTagsRoute, async (c) => {
-    const deps = c.get("deps");
+const tagRoutes = new OpenAPIHono<AppEnv>()
+  .openapi(listTagsRoute, async (ctx) => {
+    const deps = ctx.get("deps");
     const result = await deps.tagQuery.list();
-    return c.json(
+    return ctx.json(
       {
-        tags: result.map((t) => ({
-          id: t.id,
-          name: t.name,
-          articleCount: t.articleCount,
-          createdAt: t.createdAt.toISOString(),
+        tags: result.map((tag) => ({
+          articleCount: tag.articleCount,
+          createdAt: tag.createdAt.toISOString(),
+          id: tag.id,
+          name: tag.name,
         })),
       },
-      200,
+      HTTP_OK,
     );
   })
-  .openapi(createTagRoute, async (c) => {
-    const deps = c.get("deps");
-    const { name } = c.req.valid("json");
+  .openapi(createTagRoute, async (ctx) => {
+    const deps = ctx.get("deps");
+    const { name } = ctx.req.valid("json");
     const result = await createTag({ tagRepo: deps.tagRepo })(name);
     return result.match(
       (tag) =>
-        c.json(
+        ctx.json(
           {
+            articleCount: INITIAL_ARTICLE_COUNT,
+            createdAt: tag.createdAt.toISOString(),
             id: tag.id,
             name: tag.name,
-            articleCount: 0,
-            createdAt: tag.createdAt.toISOString(),
           },
-          201,
+          HTTP_CREATED,
         ),
-      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<400 | 409>(error)),
+      (error) =>
+        ctx.json(
+          domainErrorToResponse(error),
+          domainErrorToStatus<typeof HTTP_BAD_REQUEST | typeof HTTP_CONFLICT>(error),
+        ),
     );
   })
-  .openapi(deleteTagRoute, async (c) => {
-    const deps = c.get("deps");
-    const { id } = c.req.valid("param");
+  .openapi(deleteTagRoute, async (ctx) => {
+    const deps = ctx.get("deps");
+    const { id } = ctx.req.valid("param");
     const result = await deleteTag({ tagRepo: deps.tagRepo })(id);
     return result.match(
-      () => c.body(null, 204),
-      (error) => c.json(domainErrorToResponse(error), domainErrorToStatus<404>(error)),
+      () => ctx.body(null, HTTP_NO_CONTENT),
+      (error) =>
+        ctx.json(domainErrorToResponse(error), domainErrorToStatus<typeof HTTP_NOT_FOUND>(error)),
     );
   });
+
+export { tagRoutes };

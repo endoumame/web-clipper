@@ -1,53 +1,77 @@
+import { CursorPaginationSchema, SourceSchema } from "./common.js";
 import { z } from "zod";
 
-import { CursorPaginationSchema, SourceSchema } from "./common.js";
+const MIN_TAG_LENGTH = 1;
+const MAX_TAG_LENGTH = 50;
 
 // CreateArticleInput - for POST /api/articles
-export const CreateArticleInputSchema = z.object({
-  url: z.string().url(),
-  tags: z.array(z.string().min(1).max(50)).optional().default([]),
+const CreateArticleInputSchema = z.object({
   memo: z.string().optional(),
+  tags: z.array(z.string().min(MIN_TAG_LENGTH).max(MAX_TAG_LENGTH)).optional().default([]),
+  url: z.url(),
 });
-export type CreateArticleInput = z.infer<typeof CreateArticleInputSchema>;
+
+type CreateArticleInput = z.infer<typeof CreateArticleInputSchema>;
 
 // UpdateArticleInput - for PUT /api/articles/:id
-export const UpdateArticleInputSchema = z.object({
-  memo: z.string().nullable().optional(),
+const UpdateArticleInputSchema = z.object({
   isRead: z.boolean().optional(),
-  tags: z.array(z.string().min(1).max(50)).optional(),
+  memo: z.string().nullable().optional(),
+  tags: z.array(z.string().min(MIN_TAG_LENGTH).max(MAX_TAG_LENGTH)).optional(),
 });
-export type UpdateArticleInput = z.infer<typeof UpdateArticleInputSchema>;
+
+type UpdateArticleInput = z.infer<typeof UpdateArticleInputSchema>;
 
 // ArticleResponse - API response shape
-export const ArticleResponseSchema = z.object({
-  id: z.string(),
-  url: z.string().url(),
-  title: z.string(),
-  description: z.string().nullable(),
-  source: SourceSchema,
-  ogImageUrl: z.string().nullable(),
-  memo: z.string().nullable(),
+const ArticleResponseSchema = z.object({
   aiSummary: z.string().nullable(),
+  // ISO 8601
+  createdAt: z.string(),
+  description: z.string().nullable(),
+  id: z.string(),
   isRead: z.boolean(),
+  memo: z.string().nullable(),
+  ogImageUrl: z.string().nullable(),
+  source: SourceSchema,
   tags: z.array(z.string()),
-  createdAt: z.string(), // ISO 8601
-  updatedAt: z.string(), // ISO 8601
+  title: z.string(),
+  // ISO 8601
+  updatedAt: z.string(),
+  url: z.url(),
 });
-export type ArticleResponse = z.infer<typeof ArticleResponseSchema>;
+
+type ArticleResponse = z.infer<typeof ArticleResponseSchema>;
 
 // ArticleListResponse - paginated list
-export const ArticleListResponseSchema = z.object({
+const ArticleListResponseSchema = z.object({
   articles: z.array(ArticleResponseSchema),
   nextCursor: z.string().nullable(),
 });
-export type ArticleListResponse = z.infer<typeof ArticleListResponseSchema>;
+
+type ArticleListResponse = z.infer<typeof ArticleListResponseSchema>;
 
 // ArticleQueryParams - for GET /api/articles
-export const ArticleQueryParamsSchema = z.object({
-  q: z.string().optional(),
+const ArticleQueryParamsSchema = z.object({
+  isRead: z.coerce.boolean().optional(),
+  search: z.string().optional(),
   source: SourceSchema.optional(),
   tagId: z.string().optional(),
-  isRead: z.coerce.boolean().optional(),
   ...CursorPaginationSchema.shape,
 });
-export type ArticleQueryParams = z.infer<typeof ArticleQueryParamsSchema>;
+
+type ArticleQueryParams = z.infer<typeof ArticleQueryParamsSchema>;
+
+export {
+  ArticleListResponseSchema,
+  ArticleQueryParamsSchema,
+  ArticleResponseSchema,
+  CreateArticleInputSchema,
+  UpdateArticleInputSchema,
+};
+export type {
+  ArticleListResponse,
+  ArticleQueryParams,
+  ArticleResponse,
+  CreateArticleInput,
+  UpdateArticleInput,
+};

@@ -1,11 +1,11 @@
-self.addEventListener("install", () => {
-  self.skipWaiting();
+globalThis.addEventListener("install", () => {
+  globalThis.skipWaiting();
 });
 
-self.addEventListener("activate", (event) => {
+globalThis.addEventListener("activate", (event) => {
   event.waitUntil(clients.claim());
 });
 
-self.addEventListener("fetch", (event) => {
+globalThis.addEventListener("fetch", (event) => {
   event.respondWith(fetch(event.request));
 });

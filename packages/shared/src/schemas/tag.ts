@@ -1,22 +1,31 @@
 import { z } from "zod";
 
+const MIN_NAME_LENGTH = 1;
+const MAX_NAME_LENGTH = 50;
+
 // CreateTagInput
-export const CreateTagInputSchema = z.object({
-  name: z.string().min(1).max(50).trim(),
+const CreateTagInputSchema = z.object({
+  name: z.string().min(MIN_NAME_LENGTH).max(MAX_NAME_LENGTH).trim(),
 });
-export type CreateTagInput = z.infer<typeof CreateTagInputSchema>;
+
+type CreateTagInput = z.infer<typeof CreateTagInputSchema>;
 
 // TagResponse
-export const TagResponseSchema = z.object({
-  id: z.string(),
-  name: z.string(),
+const TagResponseSchema = z.object({
   articleCount: z.number(),
   createdAt: z.string(),
+  id: z.string(),
+  name: z.string(),
 });
-export type TagResponse = z.infer<typeof TagResponseSchema>;
+
+type TagResponse = z.infer<typeof TagResponseSchema>;
 
 // TagListResponse
-export const TagListResponseSchema = z.object({
+const TagListResponseSchema = z.object({
   tags: z.array(TagResponseSchema),
 });
-export type TagListResponse = z.infer<typeof TagListResponseSchema>;
+
+type TagListResponse = z.infer<typeof TagListResponseSchema>;
+
+export { CreateTagInputSchema, TagListResponseSchema, TagResponseSchema };
+export type { CreateTagInput, TagListResponse, TagResponse };

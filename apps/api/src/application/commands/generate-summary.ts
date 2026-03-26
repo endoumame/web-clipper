@@ -1,28 +1,32 @@
-import { err, ok, type ResultAsync } from "neverthrow";
-import {
-  type ArticleRepository,
-  type ArticleSummarizer,
-  type ContentExtractor,
-  type Article,
-  ArticleIdVO,
-  ArticleEntity,
+import type {
+  Article,
+  ArticleRepository,
+  ArticleSummarizer,
+  ContentExtractor,
 } from "../../domain/article/index.js";
+import { ArticleEntity, ArticleIdVO } from "../../domain/article/index.js";
+import { err, ok } from "neverthrow";
 import type { DomainError } from "../../domain/shared/index.js";
+import type { ResultAsync } from "neverthrow";
 
-type GenerateSummaryDeps = {
+interface GenerateSummaryDeps {
   readonly articleRepo: ArticleRepository;
   readonly contentExtractor: ContentExtractor;
   readonly summarizer: ArticleSummarizer;
-};
+}
 
-export const generateSummary =
-  (deps: GenerateSummaryDeps) =>
-  (id: string): ResultAsync<Article, DomainError> =>
-    ArticleIdVO.create(id)
+const generateSummary = (
+  deps: GenerateSummaryDeps,
+): ((id: string) => ResultAsync<Article, DomainError>) =>
+  function executeGenerateSummary(id: string): ResultAsync<Article, DomainError> {
+    return ArticleIdVO.create(id)
       .asyncAndThen((articleId) => deps.articleRepo.findById(articleId))
-      .andThen((article) =>
-        article ? ok(article) : err({ type: "ARTICLE_NOT_FOUND" as const, id }),
-      )
+      .andThen((article) => {
+        if (article) {
+          return ok(article);
+        }
+        return err({ id, type: "ARTICLE_NOT_FOUND" as const });
+      })
       .andThen((article) =>
         deps.contentExtractor.extract(article.url).map((content) => ({ article, content })),
       )
@@ -32,3 +36,6 @@ export const generateSummary =
           .map((summary) => ArticleEntity.updateAiSummary(article, summary)),
       )
       .andThen((article) => deps.articleRepo.save(article));
+  };
+
+export { generateSummary };

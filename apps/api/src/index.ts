@@ -1,23 +1,12 @@
+import type { AppEnv, Bindings } from "./presentation/types.js";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { Scalar } from "@scalar/hono-api-reference";
-import { cors } from "hono/cors";
-import { drizzle } from "drizzle-orm/d1";
-import type { AppEnv } from "./presentation/types.js";
-import { createD1ArticleRepository } from "./infrastructure/persistence/d1-article-repository.js";
-import { createD1TagRepository } from "./infrastructure/persistence/d1-tag-repository.js";
-import { createFetchMetadataFetcher } from "./infrastructure/services/fetch-metadata-fetcher.js";
-import { createWorkersAiSummarizer } from "./infrastructure/services/workers-ai-summarizer.js";
-import { createReadabilityContentExtractor } from "./infrastructure/services/readability-content-extractor.js";
-import { createD1UserRepository } from "./infrastructure/persistence/d1-user-repository.js";
-import { createD1SessionRepository } from "./infrastructure/persistence/d1-session-repository.js";
-import { createWebCryptoPasswordHasher } from "./infrastructure/services/web-crypto-password-hasher.js";
-import { createGitHubOAuthClient } from "./infrastructure/services/github-oauth-client.js";
-import { createD1ArticleQueryService } from "./infrastructure/persistence/d1-article-query-service.js";
-import { createD1TagQueryService } from "./infrastructure/persistence/d1-tag-query-service.js";
-import { sessionAuth } from "./presentation/middleware/auth.js";
-import { healthRoutes } from "./presentation/routes/health.js";
-import { authRoutes } from "./presentation/routes/auth.js";
 import { articleRoutes } from "./presentation/routes/articles.js";
+import { authRoutes } from "./presentation/routes/auth.js";
+import { cors } from "hono/cors";
+import { createDeps } from "./infrastructure/deps-factory.js";
+import { healthRoutes } from "./presentation/routes/health.js";
+import { sessionAuth } from "./presentation/middleware/auth.js";
 import { tagRoutes } from "./presentation/routes/tags.js";
 
 const base = new OpenAPIHono<AppEnv>();
@@ -26,34 +15,27 @@ const base = new OpenAPIHono<AppEnv>();
 base.use(
   "/api/*",
   cors({
-    origin: (origin, c) => {
-      const allowed = c.env.ALLOWED_ORIGIN;
-      if (!allowed) return origin;
-      return origin === allowed ? origin : "";
-    },
-    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type"],
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
+    origin: (origin, ctx) => {
+      // oxlint-disable-next-line no-unsafe-type-assertion -- Hono ctx.env is typed as any by cors middleware
+      const env = ctx.env as Bindings;
+      const allowedOrigin = String(env.ALLOWED_ORIGIN ?? "");
+      if (allowedOrigin === "") {
+        return origin;
+      }
+      if (origin === allowedOrigin) {
+        return origin;
+      }
+      return "";
+    },
   }),
 );
 
 // --- DI middleware ---
-base.use("/api/*", async (c, next) => {
-  const db = drizzle(c.env.DB);
-  c.set("deps", {
-    articleRepo: createD1ArticleRepository(db),
-    metadataFetcher: createFetchMetadataFetcher(),
-    summarizer: createWorkersAiSummarizer(c.env.AI),
-    contentExtractor: createReadabilityContentExtractor(),
-    userRepo: createD1UserRepository(db),
-    sessionRepo: createD1SessionRepository(db),
-    passwordHasher: createWebCryptoPasswordHasher(),
-    tagRepo: createD1TagRepository(db),
-    githubOAuth: createGitHubOAuthClient(c.env.GITHUB_CLIENT_ID, c.env.GITHUB_CLIENT_SECRET),
-    articleQuery: createD1ArticleQueryService(db),
-    tagQuery: createD1TagQueryService(db),
-    db,
-  });
+base.use("/api/*", async (ctx, next) => {
+  ctx.set("deps", createDeps(ctx.env));
   await next();
 });
 
@@ -70,15 +52,19 @@ const app = base
 
 // --- OpenAPI spec endpoint ---
 app.doc("/api/doc", {
-  openapi: "3.0.0",
   info: {
     title: "Web Clipper API",
     version: "1.0.0",
   },
+  openapi: "3.0.0",
 });
 
 // --- Scalar API Reference UI ---
+// oxlint-disable-next-line new-cap -- Scalar is a third-party factory function using PascalCase
 app.get("/api/reference", Scalar({ url: "/api/doc" }));
 
-export type AppType = typeof app;
-export default app;
+type AppType = typeof app;
+
+// oxlint-disable-next-line import/no-default-export -- Required by Cloudflare Workers runtime
+export { app as default };
+export type { AppType };

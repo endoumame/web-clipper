@@ -1,105 +1,163 @@
-import { nextTick } from "vue";
 import { createRouter, createWebHistory } from "vue-router";
-import { useViewTransition } from "@/composables/useViewTransition";
+import type { Component } from "vue";
+import { nextTick } from "vue";
+import { useViewTransition } from "@/composables/use-view-transition";
 
 const vt = useViewTransition();
 
-const isBackToList = (toPath: string, fromPath: string) =>
+const MIN_LENGTH = 1;
+
+const isBackToList = (toPath: string, fromPath: string): boolean =>
   toPath === "/" && fromPath.startsWith("/articles/");
+
+const loadLogin = async (): Promise<{ default: Component }> => {
+  const mod = await import("@/pages/LoginPage.vue");
+  return mod;
+};
+const loadSetup = async (): Promise<{ default: Component }> => {
+  const mod = await import("@/pages/SetupPage.vue");
+  return mod;
+};
+const loadHome = async (): Promise<{ default: Component }> => {
+  const mod = await import("@/pages/HomePage.vue");
+  return mod;
+};
+const loadAdd = async (): Promise<{ default: Component }> => {
+  const mod = await import("@/pages/AddArticlePage.vue");
+  return mod;
+};
+const loadDetail = async (): Promise<{ default: Component }> => {
+  const mod = await import("@/pages/ArticleDetailPage.vue");
+  return mod;
+};
 
 const router = createRouter({
   history: createWebHistory(),
-  scrollBehavior(to, from, savedPosition) {
-    // 詳細→一覧への遷移時のみスクロール位置を復元
-    if (isBackToList(to.path, from.path) && savedPosition) {
+  routes: [
+    {
+      component: loadLogin,
+      meta: { requiresAuth: false },
+      path: "/login",
+    },
+    {
+      component: loadSetup,
+      meta: { requiresAuth: false },
+      path: "/setup",
+    },
+    {
+      component: loadHome,
+      path: "/",
+    },
+    {
+      component: loadAdd,
+      path: "/articles/add",
+    },
+    {
+      component: loadDetail,
+      path: "/articles/:id",
+    },
+  ],
+  scrollBehavior(_to, from, savedPosition) {
+    if (isBackToList(_to.path, from.path) && savedPosition !== null) {
       return savedPosition;
     }
     return { top: 0 };
   },
-  routes: [
-    {
-      path: "/login",
-      component: () => import("@/pages/LoginPage.vue"),
-      meta: { requiresAuth: false },
-    },
-    {
-      path: "/setup",
-      component: () => import("@/pages/SetupPage.vue"),
-      meta: { requiresAuth: false },
-    },
-    {
-      path: "/",
-      component: () => import("@/pages/HomePage.vue"),
-    },
-    {
-      path: "/articles/add",
-      component: () => import("@/pages/AddArticlePage.vue"),
-    },
-    {
-      path: "/articles/:id",
-      component: () => import("@/pages/ArticleDetailPage.vue"),
-    },
-  ],
 });
 
 // Navigation guard
-router.beforeEach(async (to) => {
-  // Dynamic import to avoid circular dependency
-  const { useAuth } = await import("@/composables/useAuth");
+interface NavTarget {
+  fullPath: string;
+  meta: Record<string, unknown>;
+  path: string;
+}
+
+type NavResult = string | { path: string; query: { redirect: string } } | true;
+
+const checkSetupRedirect = (needsSetup: boolean, path: string): NavResult => {
+  if (needsSetup && path !== "/setup") {
+    return "/setup";
+  }
+  if (!needsSetup && path === "/setup") {
+    return "/";
+  }
+  return true;
+};
+
+const checkAuthRedirect = (isAuthenticated: boolean, to: NavTarget): NavResult => {
+  if (!isAuthenticated && to.meta.requiresAuth !== false) {
+    return { path: "/login", query: { redirect: to.fullPath } };
+  }
+  if (isAuthenticated && to.path === "/login") {
+    return "/";
+  }
+  return true;
+};
+
+const handleNavigation = async (to: NavTarget): Promise<NavResult> => {
+  const { useAuth } = await import("@/composables/use-auth");
   const auth = useAuth();
 
-  // Check auth on first load
   if (auth.isLoading.value) {
     await auth.checkAuth();
   }
 
-  // Needs setup → force /setup
-  if (auth.needsSetup.value && to.path !== "/setup") {
-    return "/setup";
+  const setupResult = checkSetupRedirect(auth.needsSetup.value, to.path);
+  if (setupResult !== true) {
+    return setupResult;
   }
 
-  // Setup done but trying to access /setup → redirect home
-  if (!auth.needsSetup.value && to.path === "/setup") {
-    return "/";
-  }
+  return checkAuthRedirect(auth.isAuthenticated.value, to);
+};
 
-  // Not authenticated and route requires auth → /login
-  if (!auth.isAuthenticated.value && to.meta.requiresAuth !== false) {
-    return { path: "/login", query: { redirect: to.fullPath } };
-  }
-
-  // Authenticated but on /login → redirect home
-  if (auth.isAuthenticated.value && to.path === "/login") {
-    return "/";
-  }
+router.beforeEach(async (to) => {
+  const result = await handleNavigation(to);
+  return result;
 });
 
 // View Transitions API
 let resolveTransition: (() => void) | null = null;
 
-router.beforeResolve(async (to, from) => {
-  if (!document.startViewTransition) return;
-
-  // ブラウザバックで一覧に戻る場合、transitioningArticleIdを自動設定
-  // （goBack()経由なら既にstartTransition()でセット済み）
-  if (isBackToList(to.path, from.path) && !vt.transitioningArticleId.value) {
-    const articleId = String(from.params.id);
-    if (articleId) {
+const setTransitionForBackNavigation = (
+  toPath: string,
+  fromPath: string,
+  fromParams: Record<string, string | string[]>,
+): void => {
+  if (isBackToList(toPath, fromPath) && vt.transitioningArticleId.value === null) {
+    const articleId = String(fromParams.id);
+    if (articleId.length >= MIN_LENGTH) {
       vt.transitioningArticleId.value = articleId;
     }
   }
+};
+
+router.beforeResolve(async (to, from) => {
+  if (typeof document.startViewTransition !== "function") {
+    return;
+  }
+
+  setTransitionForBackNavigation(
+    to.path,
+    from.path,
+    from.params as Record<string, string | string[]>,
+  );
 
   return new Promise<void>((resolve) => {
-    const transition = document.startViewTransition(() => {
+    // oxlint-disable-next-line require-await -- must be async for promise-function-async rule, but no await needed
+    const transition = document.startViewTransition(async (): Promise<void> => {
       resolve();
-      return new Promise<void>((r) => {
-        resolveTransition = r;
+      return new Promise<void>((innerResolve) => {
+        resolveTransition = innerResolve;
       });
     });
 
-    void transition.finished.then(() => {
-      vt.clearTransition();
-    });
+    transition.finished
+      .then((): void => {
+        vt.clearTransition();
+      })
+      .catch((): void => {
+        // Transition may be cancelled
+      });
   });
 });
 
@@ -109,4 +167,4 @@ router.afterEach(async () => {
   resolveTransition = null;
 });
 
-export default router;
+export { router };

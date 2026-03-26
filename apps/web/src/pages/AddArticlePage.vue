@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
-import { useRouter, useRoute } from "vue-router";
-import { useApi } from "@/composables/useApi";
+import { computed, onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useApi } from "@/composables/use-api";
 
 const router = useRouter();
 const route = useRoute();
 const api = useApi();
+
+// Magic number constants
+const FIRST_MATCH_INDEX = 0;
+const BLUR_DELAY_MS = 200;
+const EMPTY_LENGTH = 0;
 
 // Form state
 const url = ref("");
@@ -16,52 +21,61 @@ const isSubmitting = ref(false);
 const errorMessage = ref("");
 
 // Existing tags from API
-const existingTags = ref<Array<{ id: string; name: string; articleCount: number }>>([]);
+const existingTags = ref<{ articleCount: number; id: string; name: string }[]>([]);
 const showTagDropdown = ref(false);
 
 // URL validation
 const urlError = computed(() => {
-  if (!url.value) return "";
-  return URL.canParse(url.value) ? "" : "有効なURLを入力してください";
+  if (!url.value) {
+    return "";
+  }
+  if (URL.canParse(url.value)) {
+    return "";
+  }
+  return "有効なURLを入力してください";
 });
 
-const isFormValid = computed(() => {
-  return url.value.trim() !== "" && urlError.value === "";
-});
+const isFormValid = computed(() => url.value.trim() !== "" && urlError.value === "");
 
 // Filtered tags for dropdown (exclude already selected)
 const filteredTags = computed(() => {
   const input = tagInput.value.toLowerCase();
   return existingTags.value
-    .filter((t) => !tags.value.includes(t.name))
-    .filter((t) => (input ? t.name.toLowerCase().includes(input) : true));
+    .filter((tg) => !tags.value.includes(tg.name))
+    .filter((tg) => {
+      if (input) {
+        return tg.name.toLowerCase().includes(input);
+      }
+      return true;
+    });
 });
 
-// Fetch existing tags
-onMounted(async () => {
-  // Share Target: read query parameters
-  const sharedUrl = route.query.url as string | undefined;
-  const sharedText = route.query.text as string | undefined;
-  const sharedTitle = route.query.title as string | undefined;
+const handleSharedParams = function handleSharedParams(): void {
+  const sharedUrl = route.query.url as string | null;
+  const sharedText = route.query.text as string | null;
+  const sharedTitle = route.query.title as string | null;
 
   if (sharedUrl) {
     url.value = sharedUrl;
   } else if (sharedText) {
     const extracted = sharedText.match(/https?:\/\/\S+/);
     if (extracted) {
-      url.value = extracted[0];
+      url.value = extracted[FIRST_MATCH_INDEX];
     }
   }
 
   if (sharedTitle) {
     memo.value = sharedTitle;
   }
+};
 
-  // Clean up query string
+const cleanupQueryString = function cleanupQueryString(): void {
   if (route.query.url || route.query.text || route.query.title) {
     router.replace({ path: route.path });
   }
+};
 
+const fetchExistingTags = async function fetchExistingTags(): Promise<void> {
   try {
     const res = await api.api.tags.$get();
     const data = await res.json();
@@ -69,70 +83,101 @@ onMounted(async () => {
   } catch {
     // Silently fail - tags dropdown will just be empty
   }
+};
+
+// Fetch existing tags
+onMounted(async () => {
+  handleSharedParams();
+  cleanupQueryString();
+  await fetchExistingTags();
 });
 
-function addTag(tagName: string) {
+const addTag = function addTag(tagName: string): void {
   const trimmed = tagName.trim();
   if (trimmed && !tags.value.includes(trimmed)) {
     tags.value.push(trimmed);
   }
   tagInput.value = "";
   showTagDropdown.value = false;
-}
+};
 
-function removeTag(tagName: string) {
-  tags.value = tags.value.filter((t) => t !== tagName);
-}
+const removeTag = function removeTag(tagName: string): void {
+  tags.value = tags.value.filter((tg) => tg !== tagName);
+};
 
-function handleTagKeydown(e: KeyboardEvent) {
-  if (e.key === "Enter" || e.key === ",") {
-    e.preventDefault();
-    const value = tagInput.value.replace(/,/g, "").trim();
+const handleTagKeydown = function handleTagKeydown(ev: KeyboardEvent): void {
+  if (ev.key === "Enter" || ev.key === ",") {
+    ev.preventDefault();
+    const value = tagInput.value.replaceAll(",", "").trim();
     if (value) {
       addTag(value);
     }
   }
-}
+};
 
-function handleTagInputFocus() {
+const handleTagInputFocus = function handleTagInputFocus(): void {
   showTagDropdown.value = true;
-}
+};
 
-function handleTagInputBlur() {
+const handleTagInputBlur = function handleTagInputBlur(): void {
   // Delay to allow click on dropdown item
   setTimeout(() => {
     showTagDropdown.value = false;
-  }, 200);
-}
+  }, BLUR_DELAY_MS);
+};
 
-async function handleSubmit() {
-  if (!isFormValid.value || isSubmitting.value) return;
+const buildTagsList = function buildTagsList(): string[] {
+  if (tags.value.length > EMPTY_LENGTH) {
+    return tags.value;
+  }
+  return [];
+};
+
+const buildRequestBody = function buildRequestBody(): {
+  memo?: string;
+  tags: string[];
+  url: string;
+} {
+  const body: { memo?: string; tags: string[]; url: string } = {
+    tags: buildTagsList(),
+    url: url.value,
+  };
+  if (memo.value) {
+    body.memo = memo.value;
+  }
+  return body;
+};
+
+const submitArticle = async function submitArticle(): Promise<void> {
+  const res = await api.api.articles.$post({
+    json: buildRequestBody(),
+  });
+
+  if (!res.ok) {
+    const errorData = (await res.json()) as { error: string; message: string };
+    errorMessage.value = errorData.message;
+    return;
+  }
+
+  router.push("/");
+};
+
+const handleSubmit = async function handleSubmit(): Promise<void> {
+  if (!isFormValid.value || isSubmitting.value) {
+    return;
+  }
 
   isSubmitting.value = true;
   errorMessage.value = "";
 
   try {
-    const res = await api.api.articles.$post({
-      json: {
-        url: url.value,
-        tags: tags.value.length > 0 ? tags.value : [],
-        memo: memo.value || undefined,
-      },
-    });
-
-    if (!res.ok) {
-      const errorData = (await res.json()) as { error: string; message: string };
-      errorMessage.value = errorData.message;
-      return;
-    }
-
-    router.push("/");
+    await submitArticle();
   } catch {
     errorMessage.value = "記事の追加に失敗しました。もう一度お試しください。";
   } finally {
     isSubmitting.value = false;
   }
-}
+};
 </script>
 
 <template>

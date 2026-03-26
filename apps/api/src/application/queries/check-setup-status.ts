@@ -1,17 +1,24 @@
+import type { DomainError } from "../../domain/shared/index.js";
 import type { ResultAsync } from "neverthrow";
 import type { UserRepository } from "../../domain/user/index.js";
-import type { DomainError } from "../../domain/shared/index.js";
 
-type CheckSetupStatusDeps = {
+const EMPTY_COUNT = 0;
+
+interface CheckSetupStatusDeps {
   readonly userRepo: UserRepository;
-};
+}
 
-type SetupStatusResult = {
+interface SetupStatusResult {
   readonly needsSetup: boolean;
-};
+}
 
-export const checkSetupStatus =
-  (deps: CheckSetupStatusDeps) => (): ResultAsync<SetupStatusResult, DomainError> =>
-    deps.userRepo.count().map((count) => ({
-      needsSetup: count === 0,
+const checkSetupStatus = (
+  deps: CheckSetupStatusDeps,
+): (() => ResultAsync<SetupStatusResult, DomainError>) =>
+  function executeCheckSetupStatus(): ResultAsync<SetupStatusResult, DomainError> {
+    return deps.userRepo.count().map((count) => ({
+      needsSetup: count === EMPTY_COUNT,
     }));
+  };
+
+export { checkSetupStatus };

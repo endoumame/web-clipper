@@ -1,9 +1,16 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
+import {
+  extractDomain,
+  formatDate,
+  formatRelativeDate,
+  sourceBadgeStyles,
+  sourceLabels,
+} from "@/utils/article-helpers";
 import { useRoute, useRouter } from "vue-router";
-import { useApi } from "@/composables/useApi";
-import { useViewTransition } from "@/composables/useViewTransition";
 import type { Article } from "@/types/article";
+import { useApi } from "@/composables/use-api";
+import { useViewTransition } from "@/composables/use-view-transition";
 
 const route = useRoute();
 const router = useRouter();
@@ -35,77 +42,26 @@ const summaryError = ref<string | null>(null);
 
 // 削除
 const deleting = ref(false);
+const showDeleteConfirm = ref(false);
 
-const sourceBadgeStyles: Record<string, string> = {
-  twitter: "bg-info/15 text-info",
-  qiita: "bg-success/15 text-success",
-  zenn: "bg-purple/15 text-purple",
-  hatena: "bg-error/15 text-error",
-  github: "bg-foreground/15 text-foreground",
-  classmethod: "bg-warning/15 text-warning",
-  medium: "bg-foreground/15 text-foreground",
-  note: "bg-success/15 text-success",
-  devto: "bg-foreground/15 text-foreground",
-  stackoverflow: "bg-warning/15 text-warning",
-  other: "bg-muted/15 text-muted",
-};
+const HTTP_NOT_FOUND = 404;
+const HISTORY_BACK_STEPS = -1;
 
-const sourceLabels: Record<string, string> = {
-  twitter: "Twitter",
-  qiita: "Qiita",
-  zenn: "Zenn",
-  hatena: "はてな",
-  github: "GitHub",
-  classmethod: "DevelopersIO",
-  medium: "Medium",
-  note: "note",
-  devto: "DEV",
-  stackoverflow: "Stack Overflow",
-  other: "その他",
-};
-
-function extractDomain(url: string): string {
-  try {
-    return new URL(url).hostname;
-  } catch {
-    return url;
+const handleFetchError = function handleFetchError(status: number): void {
+  if (status === HTTP_NOT_FOUND) {
+    error.value = "記事が見つかりませんでした。";
+  } else {
+    error.value = "記事の取得に失敗しました。";
   }
-}
+};
 
-function formatRelativeDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMin = Math.floor(diffMs / 60000);
-  const diffHour = Math.floor(diffMs / 3600000);
-  const diffDay = Math.floor(diffMs / 86400000);
-
-  if (diffMin < 1) return "たった今";
-  if (diffMin < 60) return `${diffMin}分前`;
-  if (diffHour < 24) return `${diffHour}時間前`;
-  if (diffDay < 7) return `${diffDay}日前`;
-
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}/${m}/${d}`;
-}
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleString("ja-JP");
-}
-
-async function fetchArticle() {
+const fetchArticle = async function fetchArticle(): Promise<void> {
   loading.value = true;
   error.value = null;
   try {
     const res = await api.api.articles[":id"].$get({ param: { id: articleId.value } });
     if (!res.ok) {
-      if (res.status === 404) {
-        error.value = "記事が見つかりませんでした。";
-        return;
-      }
-      error.value = "記事の取得に失敗しました。";
+      handleFetchError(res.status);
       return;
     }
     article.value = (await res.json()) as Article;
@@ -114,28 +70,30 @@ async function fetchArticle() {
   } finally {
     loading.value = false;
   }
-}
+};
 
-async function fetchAllTags() {
+const fetchAllTags = async function fetchAllTags(): Promise<void> {
   try {
     const res = await api.api.tags.$get();
     if (res.ok) {
       const data = await res.json();
-      allTags.value = data.tags.map((t) => t.name);
+      allTags.value = data.tags.map((tg) => tg.name);
     }
   } catch {
     // タグ取得失敗は無視
   }
-}
+};
 
-async function toggleRead() {
-  if (!article.value || togglingRead.value) return;
+const toggleRead = async function toggleRead(): Promise<void> {
+  if (!article.value || togglingRead.value) {
+    return;
+  }
   togglingRead.value = true;
   try {
     const newIsRead = !article.value.isRead;
     const res = await api.api.articles[":id"].$put({
-      param: { id: articleId.value },
       json: { isRead: newIsRead },
+      param: { id: articleId.value },
     });
     if (res.ok) {
       article.value.isRead = newIsRead;
@@ -145,25 +103,27 @@ async function toggleRead() {
   } finally {
     togglingRead.value = false;
   }
-}
+};
 
-function startEditMemo() {
+const startEditMemo = function startEditMemo(): void {
   editMemo.value = article.value?.memo ?? "";
   isEditingMemo.value = true;
-}
+};
 
-function cancelEditMemo() {
+const cancelEditMemo = function cancelEditMemo(): void {
   isEditingMemo.value = false;
-}
+};
 
-async function saveMemo() {
-  if (!article.value || savingMemo.value) return;
+const saveMemo = async function saveMemo(): Promise<void> {
+  if (!article.value || savingMemo.value) {
+    return;
+  }
   savingMemo.value = true;
   try {
     const memoValue = editMemo.value.trim() || null;
     const res = await api.api.articles[":id"].$put({
-      param: { id: articleId.value },
       json: { memo: memoValue },
+      param: { id: articleId.value },
     });
     if (res.ok) {
       article.value.memo = memoValue;
@@ -174,18 +134,24 @@ async function saveMemo() {
   } finally {
     savingMemo.value = false;
   }
-}
+};
 
-async function removeTag(tag: string) {
-  if (!article.value || savingTags.value) return;
+const updateArticleTags = async function updateArticleTags(newTags: string[]): Promise<boolean> {
+  const res = await api.api.articles[":id"].$put({
+    json: { tags: newTags },
+    param: { id: articleId.value },
+  });
+  return res.ok;
+};
+
+const removeTag = async function removeTag(tag: string): Promise<void> {
+  if (!article.value || savingTags.value) {
+    return;
+  }
   savingTags.value = true;
   try {
-    const newTags = article.value.tags.filter((t) => t !== tag);
-    const res = await api.api.articles[":id"].$put({
-      param: { id: articleId.value },
-      json: { tags: newTags },
-    });
-    if (res.ok) {
+    const newTags = article.value.tags.filter((tg) => tg !== tag);
+    if (await updateArticleTags(newTags)) {
       article.value.tags = newTags;
     }
   } catch {
@@ -193,23 +159,29 @@ async function removeTag(tag: string) {
   } finally {
     savingTags.value = false;
   }
-}
+};
 
-async function addTag() {
-  if (!article.value || savingTags.value) return;
+const getValidNewTag = function getValidNewTag(): string | null {
+  if (!article.value || savingTags.value) {
+    return null;
+  }
   const tag = newTag.value.trim();
   if (!tag || article.value.tags.includes(tag)) {
     newTag.value = "";
+    return null;
+  }
+  return tag;
+};
+
+const addTag = async function addTag(): Promise<void> {
+  const tag = getValidNewTag();
+  if (!tag || !article.value) {
     return;
   }
   savingTags.value = true;
   try {
     const newTags = [...article.value.tags, tag];
-    const res = await api.api.articles[":id"].$put({
-      param: { id: articleId.value },
-      json: { tags: newTags },
-    });
-    if (res.ok) {
+    if (await updateArticleTags(newTags)) {
       article.value.tags = newTags;
       newTag.value = "";
     }
@@ -218,55 +190,69 @@ async function addTag() {
   } finally {
     savingTags.value = false;
   }
-}
+};
 
-async function generateSummary() {
-  if (!article.value || generatingSummary.value) return;
+const extractSummaryErrorMessage = function extractSummaryErrorMessage(body: unknown): string {
+  if (body && typeof body === "object" && "message" in body) {
+    return String((body as { message: string }).message);
+  }
+  return "要約の生成に失敗しました";
+};
+
+const handleSummaryResponse = async function handleSummaryResponse(res: Response): Promise<void> {
+  if (res.ok) {
+    const data = await res.json();
+    article.value = data as Article;
+  } else {
+    const body = await res.json().catch(() => null);
+    summaryError.value = extractSummaryErrorMessage(body);
+  }
+};
+
+const generateSummary = async function generateSummary(): Promise<void> {
+  if (!article.value || generatingSummary.value) {
+    return;
+  }
   generatingSummary.value = true;
   summaryError.value = null;
   try {
-    const res = await api.api.articles[":id"].summary.$post({
-      param: { id: articleId.value },
-    });
-    if (res.ok) {
-      const data = await res.json();
-      article.value = data as Article;
-    } else {
-      const body = await res.json().catch(() => null);
-      summaryError.value =
-        body && typeof body === "object" && "message" in body
-          ? String((body as { message: string }).message)
-          : "要約の生成に失敗しました";
-    }
+    const res = await api.api.articles[":id"].summary.$post({ param: { id: articleId.value } });
+    await handleSummaryResponse(res);
   } catch {
     summaryError.value = "要約の生成中にエラーが発生しました";
   } finally {
     generatingSummary.value = false;
   }
-}
+};
 
-function goBack() {
+const goBack = function goBack(): void {
   if (article.value) {
     startTransition({
       id: article.value.id,
-      title: article.value.title,
       ogImageUrl: article.value.ogImageUrl,
       source: article.value.source,
+      title: article.value.title,
     });
   }
-  // history.state.back が '/' の場合はブラウザバックを使用してスクロール位置を復元する。
-  // router.push('/') だと savedPosition が null になり scrollBehavior でスクロール復元できないため。
-  // 直接 URL アクセス時など back が '/' でない場合は push にフォールバックする。
   if (history.state?.back === "/") {
-    router.go(-1);
+    router.go(HISTORY_BACK_STEPS);
   } else {
     router.push("/");
   }
-}
+};
 
-async function deleteArticle() {
-  if (!article.value || deleting.value) return;
-  if (!window.confirm("この記事を削除しますか？")) return;
+const confirmDelete = function confirmDelete(): void {
+  showDeleteConfirm.value = true;
+};
+
+const cancelDelete = function cancelDelete(): void {
+  showDeleteConfirm.value = false;
+};
+
+const deleteArticle = async function deleteArticle(): Promise<void> {
+  if (!article.value || deleting.value) {
+    return;
+  }
   deleting.value = true;
   try {
     const res = await api.api.articles[":id"].$delete({ param: { id: articleId.value } });
@@ -277,8 +263,9 @@ async function deleteArticle() {
     // エラー時は何もしない
   } finally {
     deleting.value = false;
+    showDeleteConfirm.value = false;
   }
-}
+};
 
 onMounted(() => {
   fetchArticle();
@@ -300,7 +287,6 @@ onMounted(() => {
           style="view-transition-name: article-image"
         />
         <div class="p-5">
-          <!-- 一覧カードと同じレイアウト -->
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0 flex-1">
               <h1
@@ -327,7 +313,6 @@ onMounted(() => {
             </span>
             <div class="skeleton h-5 w-20 rounded-full ml-auto" />
           </div>
-          <!-- 詳細部分のスケルトン -->
           <div class="mt-5 pt-4 border-t border-border/50">
             <div class="skeleton h-4 w-1/2" />
             <div class="skeleton h-16 w-full mt-4" />
@@ -403,7 +388,6 @@ onMounted(() => {
 
       <!-- メインカード -->
       <div class="card-base overflow-hidden">
-        <!-- OG画像 -->
         <img
           v-if="article.ogImageUrl"
           :src="article.ogImageUrl"
@@ -413,24 +397,18 @@ onMounted(() => {
         />
 
         <div class="p-5">
-          <!-- 上部: 一覧カードと同じレイアウト -->
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0 flex-1">
-              <!-- タイトル -->
               <h1
                 class="text-foreground font-semibold text-base font-body"
                 style="view-transition-name: article-title"
               >
                 {{ article.title }}
               </h1>
-
-              <!-- ドメインURL -->
               <span class="mt-1 text-xs text-muted block break-all">
                 {{ extractDomain(article.url) }}
               </span>
             </div>
-
-            <!-- 既読/未読インジケータ -->
             <span class="flex-shrink-0 mt-1.5" :title="article.isRead ? '既読' : '未読'">
               <span
                 v-if="article.isRead"
@@ -443,20 +421,16 @@ onMounted(() => {
             </span>
           </div>
 
-          <!-- メタ情報 -->
           <div
             class="mt-3 flex flex-wrap items-center gap-2"
             style="view-transition-name: article-meta"
           >
-            <!-- ソースバッジ -->
             <span
               class="badge-base px-2 py-0.5 text-xs font-medium rounded-full"
               :class="sourceBadgeStyles[article.source]"
             >
               {{ sourceLabels[article.source] }}
             </span>
-
-            <!-- タグ -->
             <span
               v-for="tag in article.tags"
               :key="tag"
@@ -464,16 +438,12 @@ onMounted(() => {
             >
               {{ tag }}
             </span>
-
-            <!-- 日付 -->
             <span class="text-muted/70 text-xs ml-auto font-body">
               {{ formatRelativeDate(article.createdAt) }}
             </span>
           </div>
 
-          <!-- 下部: 詳細画面専用の項目 -->
           <div class="mt-5 pt-4 border-t border-border/50">
-            <!-- 外部リンク -->
             <a
               :href="article.url"
               target="_blank"
@@ -497,16 +467,12 @@ onMounted(() => {
                 <line x1="10" y1="14" x2="21" y2="3" />
               </svg>
             </a>
-
-            <!-- 説明文 -->
             <p
               v-if="article.description"
               class="mt-4 text-sm leading-relaxed text-foreground/70 font-body"
             >
               {{ article.description }}
             </p>
-
-            <!-- 日時 -->
             <div class="mt-4 flex gap-6 text-xs text-muted/60 font-body">
               <span>作成: {{ formatDate(article.createdAt) }}</span>
               <span>更新: {{ formatDate(article.updatedAt) }}</span>
@@ -536,7 +502,6 @@ onMounted(() => {
             {{ generatingSummary ? "再生成中..." : "再生成" }}
           </button>
         </div>
-
         <div
           v-if="generatingSummary && !article.aiSummary"
           class="flex items-center gap-2 text-sm text-muted font-body"
@@ -603,8 +568,6 @@ onMounted(() => {
             編集
           </button>
         </div>
-
-        <!-- 表示モード -->
         <div v-if="!isEditingMemo">
           <p
             v-if="article.memo"
@@ -614,8 +577,6 @@ onMounted(() => {
           </p>
           <p v-else class="text-sm text-muted/50 font-body">メモはありません</p>
         </div>
-
-        <!-- 編集モード -->
         <div v-else>
           <textarea
             v-model="editMemo"
@@ -637,8 +598,6 @@ onMounted(() => {
       <!-- タグ管理 -->
       <div class="card-base p-5 mt-5">
         <span class="section-title mb-3 block">タグ</span>
-
-        <!-- 現在のタグ -->
         <div class="mb-4 flex flex-wrap gap-2">
           <span
             v-for="tag in article.tags"
@@ -658,8 +617,6 @@ onMounted(() => {
             タグはありません
           </span>
         </div>
-
-        <!-- タグ追加 -->
         <div class="flex gap-2">
           <input
             v-model="newTag"
@@ -690,12 +647,25 @@ onMounted(() => {
             <p class="text-xs text-muted/60 font-body mt-0.5">この操作は取り消せません。</p>
           </div>
           <button
+            v-if="!showDeleteConfirm"
             :disabled="deleting"
             class="bg-error/10 text-error border border-error/20 hover:bg-error/20 px-4 py-2 text-sm rounded-lg font-medium transition-property-[color,background-color,border-color] duration-200 font-body disabled:opacity-50"
-            @click="deleteArticle"
+            @click="confirmDelete"
           >
-            {{ deleting ? "削除中..." : "削除" }}
+            削除
           </button>
+          <div v-else class="flex gap-2">
+            <button
+              :disabled="deleting"
+              class="bg-error text-white px-4 py-2 text-sm rounded-lg font-medium disabled:opacity-50"
+              @click="deleteArticle"
+            >
+              {{ deleting ? "削除中..." : "本当に削除" }}
+            </button>
+            <button :disabled="deleting" class="btn-ghost text-sm" @click="cancelDelete">
+              キャンセル
+            </button>
+          </div>
         </div>
       </div>
     </div>

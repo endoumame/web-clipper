@@ -1,11 +1,13 @@
-import type { ResultAsync } from "neverthrow";
 import type { DomainError } from "../shared/errors.js";
+import type { ResultAsync } from "neverthrow";
 
-export type PasswordHasher = {
+interface PasswordHasher {
   readonly hash: (password: string) => ResultAsync<{ hash: string; salt: string }, DomainError>;
   readonly verify: (
     password: string,
     hash: string,
     salt: string,
   ) => ResultAsync<boolean, DomainError>;
-};
+}
+
+export type { PasswordHasher };

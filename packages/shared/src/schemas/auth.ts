@@ -1,37 +1,57 @@
 import { z } from "zod";
 
+const MIN_PASSWORD_LENGTH = 8;
+const MAX_PASSWORD_LENGTH = 128;
+const MIN_USERNAME_LENGTH = 3;
+const MAX_USERNAME_LENGTH = 50;
+const MIN_LOGIN_LENGTH = 1;
+
 // SetupInput - for POST /api/auth/setup (first-time user creation)
-export const SetupInputSchema = z.object({
-  username: z.string().min(3).max(50),
-  password: z.string().min(8).max(128),
+const SetupInputSchema = z.object({
+  password: z.string().min(MIN_PASSWORD_LENGTH).max(MAX_PASSWORD_LENGTH),
+  username: z.string().min(MIN_USERNAME_LENGTH).max(MAX_USERNAME_LENGTH),
 });
-export type SetupInput = z.infer<typeof SetupInputSchema>;
+
+type SetupInput = z.infer<typeof SetupInputSchema>;
 
 // LoginInput - for POST /api/auth/login
-export const LoginInputSchema = z.object({
-  username: z.string().min(1),
-  password: z.string().min(1),
+const LoginInputSchema = z.object({
+  password: z.string().min(MIN_LOGIN_LENGTH),
+  username: z.string().min(MIN_LOGIN_LENGTH),
 });
-export type LoginInput = z.infer<typeof LoginInputSchema>;
+
+type LoginInput = z.infer<typeof LoginInputSchema>;
 
 // AuthUser - user info returned in responses
-export const AuthUserSchema = z.object({
+const AuthUserSchema = z.object({
+  githubLinked: z.boolean(),
   id: z.string(),
   username: z.string(),
-  githubLinked: z.boolean(),
 });
-export type AuthUser = z.infer<typeof AuthUserSchema>;
+
+type AuthUser = z.infer<typeof AuthUserSchema>;
 
 // AuthStatusResponse - for GET /api/auth/me
-export const AuthStatusResponseSchema = z.object({
+const AuthStatusResponseSchema = z.object({
   authenticated: z.boolean(),
-  user: AuthUserSchema.nullable(),
   needsSetup: z.boolean(),
+  user: AuthUserSchema.nullable(),
 });
-export type AuthStatusResponse = z.infer<typeof AuthStatusResponseSchema>;
+
+type AuthStatusResponse = z.infer<typeof AuthStatusResponseSchema>;
 
 // SetupStatusResponse - for GET /api/auth/status
-export const SetupStatusResponseSchema = z.object({
+const SetupStatusResponseSchema = z.object({
   needsSetup: z.boolean(),
 });
-export type SetupStatusResponse = z.infer<typeof SetupStatusResponseSchema>;
+
+type SetupStatusResponse = z.infer<typeof SetupStatusResponseSchema>;
+
+export {
+  AuthStatusResponseSchema,
+  AuthUserSchema,
+  LoginInputSchema,
+  SetupInputSchema,
+  SetupStatusResponseSchema,
+};
+export type { AuthStatusResponse, AuthUser, LoginInput, SetupInput, SetupStatusResponse };

@@ -1,10 +1,14 @@
-interface Env {
-  ASSETS: Fetcher;
-  API: Fetcher;
+interface Fetcher {
+  fetch(request: Request): Response | Promise<Response>;
 }
 
-export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+interface Env {
+  API: Fetcher;
+  ASSETS: Fetcher;
+}
+
+const worker = {
+  fetch(request: Request, env: Env): Response | Promise<Response> {
     const url = new URL(request.url);
 
     if (url.pathname.startsWith("/api")) {
@@ -13,4 +17,6 @@ export default {
 
     return env.ASSETS.fetch(request);
   },
-} satisfies ExportedHandler<Env>;
+};
+
+export { worker as default };
