@@ -177,6 +177,7 @@ const createService = (db: DrizzleD1Database): ArticleQueryService => ({
     await addCursorCondition(db, params, conditions);
 
     let rows: ArticleListRow[] = [];
+    // oxlint-disable-next-line prefer-ternary -- conflicts with no-ternary rule
     if (hasValue(params.tagName)) {
       rows = await fetchRowsWithTagQuery({
         conditions,
