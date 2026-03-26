@@ -62,6 +62,7 @@ export default defineConfig({
     "no-duplicate-imports": "off",
     "no-extra-semi": "off",
     "no-mixed-spaces-and-tabs": "off",
+    "no-ternary": "off",
     "typescript/no-explicit-any": "error",
     "typescript/no-non-null-assertion": "error",
     "unicorn/no-null": "off",

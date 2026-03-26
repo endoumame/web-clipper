@@ -176,17 +176,14 @@ const createService = (db: DrizzleD1Database): ArticleQueryService => ({
     const conditions = buildConditions(params);
     await addCursorCondition(db, params, conditions);
 
-    let rows: ArticleListRow[] = [];
-    if (hasValue(params.tagName)) {
-      rows = await fetchRowsWithTagQuery({
-        conditions,
-        db,
-        limit,
-        tagName: params.tagName,
-      });
-    } else {
-      rows = await fetchRowsWithoutTagQuery(db, conditions, limit);
-    }
+    const rows = hasValue(params.tagName)
+      ? await fetchRowsWithTagQuery({
+          conditions,
+          db,
+          limit,
+          tagName: params.tagName,
+        })
+      : await fetchRowsWithoutTagQuery(db, conditions, limit);
     return buildResult(rows, limit);
   },
 });
