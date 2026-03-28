@@ -26,6 +26,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: secretlint
+        run: pnpm secretlint
+
       - name: oxlint
         run: pnpm lint
 
