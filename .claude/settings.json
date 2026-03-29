@@ -12,7 +12,7 @@
     "deny": [
       "Bash(bash -c:*)",
       "Bash(git commit --no-verify*)"
-    ],
+    ]
   },
   "hooks": {
     "PreToolUse": [
@@ -54,7 +54,7 @@
     "code-review@claude-plugins-official": true,
     "commit-commands@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
-    "frontend-design@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true
   },
   "outputStyle": "Explanatory",
   "alwaysThinkingEnabled": true,
