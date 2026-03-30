@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from "vue-router";
+import { RouterLink, RouterView, useRouter } from "vue-router";
 import { useAuth } from "@/composables/use-auth";
 import { useHideOnScroll } from "@/composables/use-hide-on-scroll";
 import { useTheme } from "@/composables/use-theme";
 
 const auth = useAuth();
+const router = useRouter();
 const { isHidden } = useHideOnScroll();
 const { resolved: themeMode, toggleTheme } = useTheme();
 
 const handleLogout = async function handleLogout(): Promise<void> {
   await auth.logout();
+  await router.push("/login");
 };
 </script>
 
