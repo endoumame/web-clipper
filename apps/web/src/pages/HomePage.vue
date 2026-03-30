@@ -114,11 +114,17 @@ watch([debouncedQuery, selectedSource], () => {
 const isEmpty = computed((): boolean => !isLoading.value && articles.value.length === EMPTY_LENGTH);
 
 // --- Init ---
+let isInitialActivation = true;
+
 onMounted(() => {
   loadArticles();
 });
 
 onActivated(async () => {
+  if (isInitialActivation) {
+    isInitialActivation = false;
+    return;
+  }
   const data = await fetchArticles();
   articles.value = data.articles;
   nextCursor.value = data.nextCursor;
