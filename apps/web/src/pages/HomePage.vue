@@ -9,13 +9,11 @@ import {
 import type { Article } from "@/types/article";
 import { RouterLink } from "vue-router";
 import { useApi } from "@/composables/use-api";
-import { useArticleListDirty } from "@/composables/use-article-list-dirty";
 import { useViewTransition } from "@/composables/use-view-transition";
 
 defineOptions({ name: "HomePage" });
 
 const api = useApi();
-const { isDirty } = useArticleListDirty();
 const { transitioningArticleId, startTransition } = useViewTransition();
 
 // Magic number constants
@@ -121,9 +119,7 @@ onMounted(() => {
 });
 
 onActivated(() => {
-  if (isDirty()) {
-    loadArticles();
-  }
+  loadArticles();
 });
 </script>
 
