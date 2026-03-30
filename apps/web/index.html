@@ -15,7 +15,18 @@
       rel="stylesheet"
     />
   </head>
-  <body class="bg-[#262427] text-[#fcfcfa] antialiased">
+  <body class="antialiased">
+    <script>
+      // Prevent FOUC: apply dark class before first paint
+      (function () {
+        var t = localStorage.getItem("theme");
+        if (
+          t === "dark" ||
+          ((!t || t === "system") && matchMedia("(prefers-color-scheme:dark)").matches)
+        )
+          document.documentElement.classList.add("dark");
+      })();
+    </script>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>

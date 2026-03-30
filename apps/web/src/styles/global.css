@@ -1,9 +1,49 @@
-/* ── Midnight Gold Theme ── */
+/* ── Theme Variables ── */
+
+:root {
+  --c-accent: 154 112 0;
+  --c-accent-fg: 255 255 255;
+  --c-foreground: 28 27 30;
+  --c-border: 216 214 220;
+  --c-muted: 110 108 116;
+  --c-error: 220 38 38;
+  --c-success: 22 163 74;
+  --c-info: 14 138 160;
+  --c-purple: 109 92 184;
+  --c-warning: 217 119 6;
+  --c-surface-0: 249 248 251;
+  --c-surface-1: 255 255 255;
+  --c-surface-2: 241 240 244;
+  --c-surface-3: 232 231 236;
+  --shadow-card-hover: 0 2px 24px rgb(154 112 0 / 0.1), 0 0 0 1px rgb(154 112 0 / 0.12);
+  --shadow-btn-primary: 0 0 20px rgb(154 112 0 / 0.25);
+}
+
+:root.dark {
+  --c-accent: 255 202 88;
+  --c-accent-fg: 38 36 39;
+  --c-foreground: 252 252 250;
+  --c-border: 69 67 73;
+  --c-muted: 144 142 150;
+  --c-error: 255 114 114;
+  --c-success: 188 223 89;
+  --c-info: 73 202 228;
+  --c-purple: 160 147 226;
+  --c-warning: 251 191 36;
+  --c-surface-0: 38 36 39;
+  --c-surface-1: 45 43 48;
+  --c-surface-2: 53 51 57;
+  --c-surface-3: 62 60 66;
+  --shadow-card-hover: 0 2px 24px rgb(255 202 88 / 0.12), 0 0 0 1px rgb(255 202 88 / 0.15);
+  --shadow-btn-primary: 0 0 20px rgb(255 202 88 / 0.3);
+}
+
+/* ── Base ── */
 
 body {
   font-family: "DM Sans", sans-serif;
-  background-color: #262427;
-  color: #fcfcfa;
+  background-color: rgb(var(--c-surface-0));
+  color: rgb(var(--c-foreground));
 }
 
 /* Scrollbar */
@@ -17,23 +57,23 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #454349;
+  background: rgb(var(--c-border));
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #908e96;
+  background: rgb(var(--c-muted));
 }
 
 /* Selection */
 ::selection {
-  background: #fcfcfa;
-  color: #262427;
+  background: rgb(var(--c-foreground));
+  color: rgb(var(--c-surface-0));
 }
 
 /* Focus visible */
 :focus-visible {
-  outline: 2px solid rgba(255, 202, 88, 0.5);
+  outline: 2px solid rgb(var(--c-accent) / 0.5);
   outline-offset: 2px;
 }
 
@@ -48,7 +88,12 @@ body {
 }
 
 .skeleton {
-  background: linear-gradient(90deg, #2d2b30 25%, #353339 50%, #2d2b30 75%);
+  background: linear-gradient(
+    90deg,
+    rgb(var(--c-surface-1)) 25%,
+    rgb(var(--c-surface-2)) 50%,
+    rgb(var(--c-surface-1)) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 8px;
