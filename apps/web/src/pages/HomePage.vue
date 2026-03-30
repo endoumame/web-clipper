@@ -118,8 +118,10 @@ onMounted(() => {
   loadArticles();
 });
 
-onActivated(() => {
-  loadArticles();
+onActivated(async () => {
+  const data = await fetchArticles();
+  articles.value = data.articles;
+  nextCursor.value = data.nextCursor;
 });
 </script>
 
