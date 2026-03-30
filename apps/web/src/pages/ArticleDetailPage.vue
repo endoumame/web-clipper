@@ -10,11 +10,13 @@ import {
 import { useRoute, useRouter } from "vue-router";
 import type { Article } from "@/types/article";
 import { useApi } from "@/composables/use-api";
+import { useArticleListDirty } from "@/composables/use-article-list-dirty";
 import { useViewTransition } from "@/composables/use-view-transition";
 
 const route = useRoute();
 const router = useRouter();
 const api = useApi();
+const { markDirty } = useArticleListDirty();
 const { transitionArticle, startTransition, clearTransition } = useViewTransition();
 
 const articleId = computed(() => route.params.id as string);
@@ -254,6 +256,7 @@ const deleteArticle = async function deleteArticle(): Promise<void> {
   try {
     const res = await api.api.articles[":id"].$delete({ param: { id: articleId.value } });
     if (res.ok) {
+      markDirty();
       router.push("/");
     }
   } catch {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onActivated, onMounted, ref, watch } from "vue";
 import {
   extractDomain,
   formatRelativeDate,
@@ -9,11 +9,13 @@ import {
 import type { Article } from "@/types/article";
 import { RouterLink } from "vue-router";
 import { useApi } from "@/composables/use-api";
+import { useArticleListDirty } from "@/composables/use-article-list-dirty";
 import { useViewTransition } from "@/composables/use-view-transition";
 
 defineOptions({ name: "HomePage" });
 
 const api = useApi();
+const { isDirty } = useArticleListDirty();
 const { transitioningArticleId, startTransition } = useViewTransition();
 
 // Magic number constants
@@ -116,6 +118,12 @@ const isEmpty = computed((): boolean => !isLoading.value && articles.value.lengt
 // --- Init ---
 onMounted(() => {
   loadArticles();
+});
+
+onActivated(() => {
+  if (isDirty()) {
+    loadArticles();
+  }
 });
 </script>
 

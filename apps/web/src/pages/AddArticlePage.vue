@@ -2,10 +2,12 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useApi } from "@/composables/use-api";
+import { useArticleListDirty } from "@/composables/use-article-list-dirty";
 
 const router = useRouter();
 const route = useRoute();
 const api = useApi();
+const { markDirty } = useArticleListDirty();
 
 // Magic number constants
 const FIRST_MATCH_INDEX = 0;
@@ -159,6 +161,7 @@ const submitArticle = async function submitArticle(): Promise<void> {
     return;
   }
 
+  markDirty();
   router.push("/");
 };
 
