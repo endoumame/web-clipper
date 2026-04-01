@@ -3,6 +3,7 @@ export { createTag } from "./create-tag.js";
 export { deleteArticle } from "./delete-article.js";
 export { deleteTag } from "./delete-tag.js";
 export { generateSummary } from "./generate-summary.js";
+export { suggestAndApplyTags } from "./suggest-and-apply-tags.js";
 export { githubOAuthCallback } from "./github-oauth-callback.js";
 export { login } from "./login.js";
 export { logout } from "./logout.js";

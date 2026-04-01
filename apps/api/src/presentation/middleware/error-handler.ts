@@ -18,6 +18,7 @@ const STATUS_MAP = {
   SUMMARY_GENERATION_FAILED: 502,
   TAG_ALREADY_EXISTS: 409,
   TAG_NOT_FOUND: 404,
+  TAG_SUGGESTION_FAILED: 502,
 } as const satisfies Record<DomainError["type"], number>;
 
 type DomainStatusCode = (typeof STATUS_MAP)[DomainError["type"]];
@@ -40,7 +41,8 @@ const toMessageWithCause = (error: DomainError): string => {
     case "OAUTH_ERROR":
     case "METADATA_FETCH_FAILED":
     case "STORAGE_ERROR":
-    case "SUMMARY_GENERATION_FAILED": {
+    case "SUMMARY_GENERATION_FAILED":
+    case "TAG_SUGGESTION_FAILED": {
       return "";
     }
     case "ARTICLE_NOT_FOUND": {
@@ -75,6 +77,9 @@ const toMessageForErrorTypes = (error: DomainError): string => {
     }
     case "SUMMARY_GENERATION_FAILED": {
       return `AI summary generation failed: ${error.cause}`;
+    }
+    case "TAG_SUGGESTION_FAILED": {
+      return `AI tag suggestion failed: ${error.cause}`;
     }
     case "STORAGE_ERROR": {
       return `Internal storage error: ${getStorageErrorCause(error.cause)}`;

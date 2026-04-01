@@ -11,6 +11,7 @@ import { createGitHubOAuthClient } from "./services/github-oauth-client.js";
 import { createReadabilityContentExtractor } from "./services/readability-content-extractor.js";
 import { createWebCryptoPasswordHasher } from "./services/web-crypto-password-hasher.js";
 import { createWorkersAiSummarizer } from "./services/workers-ai-summarizer.js";
+import { createWorkersAiTagSuggester } from "./services/workers-ai-tag-suggester.js";
 import { drizzle } from "drizzle-orm/d1";
 
 const createDeps = (env: Bindings): Deps => {
@@ -27,6 +28,7 @@ const createDeps = (env: Bindings): Deps => {
     summarizer: createWorkersAiSummarizer(env.AI),
     tagQuery: createD1TagQueryService(db),
     tagRepo: createD1TagRepository(db),
+    tagSuggester: createWorkersAiTagSuggester(env.AI),
     userRepo: createD1UserRepository(db),
   };
 };
