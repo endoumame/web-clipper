@@ -13,9 +13,6 @@ interface SuggestAndApplyTagsDeps {
   readonly tagQuery: TagQueryService;
 }
 
-const TRUNCATE_START = 0;
-const MAX_TEXT_LENGTH = 6000;
-
 const mergeTags = (
   existing: readonly TagName[],
   suggested: readonly TagName[],
@@ -44,26 +41,23 @@ const suggestAndApplyTags = (
         return err({ id, type: "ARTICLE_NOT_FOUND" as const });
       })
       .andThen((article) =>
-        deps.contentExtractor.extract(article.url).map((content) => ({
-          article,
-          content: content.slice(TRUNCATE_START, MAX_TEXT_LENGTH),
-        })),
+        deps.contentExtractor.extract(article.url).map((content) => ({ article, content })),
       )
       .andThen(({ article, content }) =>
         ResultAsync.fromSafePromise(deps.tagQuery.list()).map((allTags) => {
-          const existingTagNames = allTags
+          const systemTagNames = allTags
             .map((tag) => TagNameVO.create(tag.name))
             .filter((result) => result.isOk())
             .map((result) => result.value);
-          return { article, content, existingTagNames };
+          return { article, content, systemTagNames };
         }),
       )
-      .andThen(({ article, content, existingTagNames }) =>
+      .andThen(({ article, content, systemTagNames }) =>
         deps.tagSuggester
           .suggest({
             content,
             description: article.description,
-            existingTags: existingTagNames,
+            existingTags: systemTagNames,
             title: article.title,
           })
           .map((suggestedTags) => {
