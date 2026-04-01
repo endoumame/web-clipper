@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onActivated, onMounted, ref, watch } from "vue";
 import {
   extractDomain,
   formatRelativeDate,
@@ -114,8 +114,20 @@ watch([debouncedQuery, selectedSource], () => {
 const isEmpty = computed((): boolean => !isLoading.value && articles.value.length === EMPTY_LENGTH);
 
 // --- Init ---
+let isInitialActivation = true;
+
 onMounted(() => {
   loadArticles();
+});
+
+onActivated(async () => {
+  if (isInitialActivation) {
+    isInitialActivation = false;
+    return;
+  }
+  const data = await fetchArticles();
+  articles.value = data.articles;
+  nextCursor.value = data.nextCursor;
 });
 </script>
 
