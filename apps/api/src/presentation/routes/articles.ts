@@ -4,6 +4,7 @@ import {
   clipArticle,
   deleteArticle,
   generateSummary,
+  suggestAndApplyTags,
   updateArticle,
 } from "../../application/commands/index.js";
 import {
@@ -112,7 +113,24 @@ const articleRoutes = new OpenAPIHono<AppEnv>()
       metadataFetcher: deps.metadataFetcher,
     })({ memo: body.memo, tags: body.tags, url: body.url });
     return result.match(
-      (article) => ctx.json(toArticleResponse(article), HTTP_CREATED),
+      (article) => {
+        ctx.executionCtx.waitUntil(
+          suggestAndApplyTags({
+            articleRepo: deps.articleRepo,
+            contentExtractor: deps.contentExtractor,
+            tagQuery: deps.tagQuery,
+            tagSuggester: deps.tagSuggester,
+          })(article.id).match(
+            // oxlint-disable-next-line no-empty-function -- intentional noop: success needs no action
+            () => {},
+            (error) => {
+              // oxlint-disable-next-line no-console -- no logger abstraction; background task errors go to console
+              console.error("Auto-tagging failed:", error);
+            },
+          ),
+        );
+        return ctx.json(toArticleResponse(article), HTTP_CREATED);
+      },
       (error) =>
         ctx.json(
           domainErrorToResponse(error),

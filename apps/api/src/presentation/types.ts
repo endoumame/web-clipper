@@ -5,12 +5,12 @@ import type {
   MetadataFetcher,
 } from "../domain/article/index.js";
 import type { PasswordHasher, UserRepository } from "../domain/user/index.js";
+import type { TagRepository, TagSuggester } from "../domain/tag/index.js";
 import type { ArticleQueryService } from "../application/queries/article-query-service.js";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import type { GitHubOAuthClient } from "../infrastructure/services/github-oauth-client.js";
 import type { SessionRepository } from "../domain/session/index.js";
 import type { TagQueryService } from "../application/queries/tag-query-service.js";
-import type { TagRepository } from "../domain/tag/index.js";
 
 interface Deps {
   readonly articleQuery: ArticleQueryService;
@@ -24,6 +24,7 @@ interface Deps {
   readonly summarizer: ArticleSummarizer;
   readonly tagQuery: TagQueryService;
   readonly tagRepo: TagRepository;
+  readonly tagSuggester: TagSuggester;
   readonly userRepo: UserRepository;
 }
 
