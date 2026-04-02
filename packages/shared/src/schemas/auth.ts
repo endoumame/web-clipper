@@ -40,6 +40,14 @@ const AuthStatusResponseSchema = z.object({
 
 type AuthStatusResponse = z.infer<typeof AuthStatusResponseSchema>;
 
+// LoginResponse - for POST /api/auth/login and POST /api/auth/setup
+// Extends AuthStatusResponse with sessionId for non-cookie clients (e.g. Chrome Extension)
+const LoginResponseSchema = AuthStatusResponseSchema.extend({
+  sessionId: z.string().optional(),
+});
+
+type LoginResponse = z.infer<typeof LoginResponseSchema>;
+
 // SetupStatusResponse - for GET /api/auth/status
 const SetupStatusResponseSchema = z.object({
   needsSetup: z.boolean(),
@@ -51,7 +59,15 @@ export {
   AuthStatusResponseSchema,
   AuthUserSchema,
   LoginInputSchema,
+  LoginResponseSchema,
   SetupInputSchema,
   SetupStatusResponseSchema,
 };
-export type { AuthStatusResponse, AuthUser, LoginInput, SetupInput, SetupStatusResponse };
+export type {
+  AuthStatusResponse,
+  AuthUser,
+  LoginInput,
+  LoginResponse,
+  SetupInput,
+  SetupStatusResponse,
+};

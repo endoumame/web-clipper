@@ -18,7 +18,8 @@
   "references": [
     { "path": "./apps/api" },
     { "path": "./apps/web" },
-    { "path": "./packages/shared" }
+    { "path": "./packages/shared" },
+    { "path": "./packages/extension" }
   ],
   "exclude": ["node_modules"]
 }

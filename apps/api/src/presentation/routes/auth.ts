@@ -1,10 +1,5 @@
 import type { HTTP_CONFLICT, HTTP_INTERNAL_ERROR } from "../http-status.js";
 import { HTTP_NO_CONTENT, HTTP_OK, HTTP_REDIRECT, HTTP_UNAUTHORIZED } from "../http-status.js";
-import {
-  SESSION_COOKIE_NAME,
-  createExpiredSessionCookie,
-  createSessionCookie,
-} from "../middleware/cookie.js";
 import { checkSetupStatus, getAuthStatus } from "../../application/queries/index.js";
 import {
   checkSetupStatusRoute,
@@ -15,12 +10,17 @@ import {
   meRoute,
   setupRoute,
 } from "./auth-route-defs.js";
+import {
+  createExpiredSessionCookie,
+  createSessionCookie,
+  getCookie,
+} from "../middleware/cookie.js";
 import { domainErrorToResponse, domainErrorToStatus } from "../middleware/error-handler.js";
 import { githubOAuthCallback, login, logout, setupUser } from "../../application/commands/index.js";
 import type { AppEnv } from "../types.js";
 import type { Context } from "hono";
 import { OpenAPIHono } from "@hono/zod-openapi";
-import { getCookie } from "hono/cookie";
+import { extractSessionId } from "../middleware/auth.js";
 
 const MAX_AGE_OAUTH_STATE = 600;
 
@@ -31,6 +31,7 @@ const buildAuthUserResponse = (
   body: {
     authenticated: true;
     needsSetup: false;
+    sessionId: string;
     user: { githubLinked: boolean; id: string; username: string };
   };
   cookie: string;
@@ -38,6 +39,7 @@ const buildAuthUserResponse = (
   body: {
     authenticated: true,
     needsSetup: false,
+    sessionId: String(session.id),
     user: {
       githubLinked: user.githubId !== null,
       id: String(user.id),
@@ -187,8 +189,8 @@ const authRoutes = new OpenAPIHono<AppEnv>()
   })
   .openapi(logoutRoute, async (ctx) => {
     const deps = ctx.get("deps");
-    const sessionId = getCookie(ctx, SESSION_COOKIE_NAME);
-    if (typeof sessionId === "string" && sessionId !== "") {
+    const sessionId = extractSessionId(ctx);
+    if (sessionId !== null) {
       await logout({ sessionRepo: deps.sessionRepo })(sessionId);
     }
     ctx.header("Set-Cookie", createExpiredSessionCookie());
@@ -215,7 +217,7 @@ const authRoutes = new OpenAPIHono<AppEnv>()
   })
   .openapi(meRoute, async (ctx) => {
     const deps = ctx.get("deps");
-    const sessionId = getCookie(ctx, SESSION_COOKIE_NAME);
+    const sessionId = extractSessionId(ctx);
     const result = await getAuthStatus({
       sessionRepo: deps.sessionRepo,
       userRepo: deps.userRepo,

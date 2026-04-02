@@ -34,8 +34,10 @@ const hasValue = (sessionId?: string | null): sessionId is string =>
 
 const getAuthStatus = (
   deps: GetAuthStatusDeps,
-): ((sessionId?: string) => ResultAsync<AuthStatusResult, DomainError>) => {
-  const executeGetAuthStatus = (sessionId?: string): ResultAsync<AuthStatusResult, DomainError> => {
+): ((sessionId: string | null) => ResultAsync<AuthStatusResult, DomainError>) => {
+  const executeGetAuthStatus = (
+    sessionId: string | null,
+  ): ResultAsync<AuthStatusResult, DomainError> => {
     if (!hasValue(sessionId)) {
       return unauthenticated(deps);
     }
