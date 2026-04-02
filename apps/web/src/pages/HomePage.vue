@@ -133,10 +133,15 @@ onActivated(async () => {
 
 <template>
   <div class="space-y-6">
-    <!-- Search Bar -->
-    <div class="relative">
-      <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-        <svg class="w-5 h-5 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <!-- Search Bar — command palette style -->
+    <div class="search-container group">
+      <div class="absolute inset-y-0 left-0 pl-4 sm:pl-5 flex items-center pointer-events-none">
+        <svg
+          class="w-5 h-5 text-muted/50 transition-colors duration-200 group-focus-within:text-accent"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -145,27 +150,40 @@ onActivated(async () => {
           />
         </svg>
       </div>
-      <input
-        v-model="searchQuery"
-        type="text"
-        placeholder="記事を検索..."
-        class="input-base w-full py-3 px-5 pl-12 text-base font-body focus:ring-2 focus:ring-accent/40 focus:border-accent"
-      />
+      <input v-model="searchQuery" type="text" placeholder="記事を検索..." class="search-input" />
+      <!-- Clear button -->
+      <button
+        v-if="searchQuery"
+        class="absolute inset-y-0 right-14 flex items-center px-2 text-muted/50 hover:text-foreground transition-colors duration-150"
+        @click="searchQuery = ''"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+      <!-- Keyboard shortcut hint -->
+      <div class="absolute inset-y-0 right-0 pr-4 sm:pr-5 flex items-center pointer-events-none">
+        <kbd
+          class="hidden sm:inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-mono text-muted/40 bg-surface-2/60 border border-border/30 rounded-md"
+        >
+          ⌘K
+        </kbd>
+      </div>
     </div>
 
-    <!-- Filters -->
-    <div class="flex flex-wrap items-center gap-4">
-      <!-- Source filter pills -->
-      <div class="flex flex-wrap gap-2">
+    <!-- Source Filters — horizontal scroll with fade edges -->
+    <div class="filter-scroll-container">
+      <div class="filter-scroll-inner">
         <button
           v-for="f in sourceFilters"
           :key="f.value"
-          class="px-4 py-2 text-sm rounded-full border transition-property-[color,background-color,border-color] duration-200 font-body"
-          :class="
-            selectedSource === f.value
-              ? 'bg-accent text-surface-0 border-accent shadow-sm shadow-accent/20'
-              : 'bg-surface-2 text-muted border-border hover:text-foreground hover:border-muted'
-          "
+          class="filter-chip"
+          :class="selectedSource === f.value ? 'filter-chip-active' : 'filter-chip-inactive'"
           @click="selectedSource = f.value"
         >
           {{ f.label }}

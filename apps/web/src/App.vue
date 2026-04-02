@@ -31,71 +31,119 @@ const handleLogout = async function handleLogout(): Promise<void> {
   <div v-else class="min-h-screen bg-surface-0 font-body text-foreground">
     <header
       v-if="auth.isAuthenticated.value"
-      class="sticky top-0 z-50 bg-surface-0/80 backdrop-blur-xl border-b border-border/60 transition-transform duration-300"
+      class="sticky top-0 z-50 transition-transform duration-300"
       :class="{ '-translate-y-full': isHidden }"
     >
-      <!-- Decorative golden top bar -->
-      <div class="h-0.5 w-full bg-gradient-to-r from-accent/0 via-accent to-accent/0" />
-
-      <div
-        class="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3"
-      >
-        <RouterLink to="/" class="font-display font-bold text-lg sm:text-xl no-underline shrink-0">
-          <span class="text-foreground">Web </span><span class="text-accent">Clipper</span>
-        </RouterLink>
-
-        <div class="flex items-center gap-2 sm:gap-4">
+      <!-- Glassmorphism header with subtle gradient border bottom -->
+      <div class="header-glass">
+        <div
+          class="max-w-7xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-4"
+        >
+          <!-- Logo with gradient -->
           <RouterLink
-            to="/articles/add"
-            class="btn-primary no-underline whitespace-nowrap text-xs sm:text-sm px-3 sm:px-5 py-2 sm:py-2.5"
+            to="/"
+            class="font-display font-bold text-lg sm:text-xl no-underline shrink-0 flex items-center gap-2 group"
           >
-            記事を追加
+            <span
+              class="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-accent to-accent/70 text-accent-fg text-sm sm:text-base font-black shadow-sm transition-transform duration-200 group-hover:scale-105"
+              >W</span
+            >
+            <span
+              class="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent"
+              >Clipper</span
+            >
           </RouterLink>
 
-          <button
-            class="p-2 text-muted hover:text-foreground transition-colors duration-200 rounded-lg hover:bg-surface-2"
-            :title="themeMode === 'dark' ? 'ライトモードに切替' : 'ダークモードに切替'"
-            @click="toggleTheme"
-          >
-            <!-- Sun icon (dark mode → switch to light) -->
-            <svg
-              v-if="themeMode === 'dark'"
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <!-- Right actions -->
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <!-- Add article button with icon -->
+            <RouterLink
+              to="/articles/add"
+              class="btn-primary no-underline whitespace-nowrap text-xs sm:text-sm px-3 sm:px-4 py-2 inline-flex items-center gap-1.5"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-              />
-            </svg>
-            <!-- Moon icon (light mode → switch to dark) -->
-            <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-              />
-            </svg>
-          </button>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2.5"
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              <span class="hidden sm:inline">追加</span>
+            </RouterLink>
 
-          <div class="flex items-center gap-2 sm:gap-3">
-            <span class="text-muted text-sm font-body hidden sm:inline truncate max-w-32">
-              {{ auth.currentUser.value?.username }}
-            </span>
+            <!-- Divider -->
+            <div class="w-px h-6 bg-border/40 mx-1 hidden sm:block" />
+
+            <!-- Theme toggle -->
             <button
-              class="btn-ghost whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-4"
-              @click="handleLogout"
+              class="header-icon-btn"
+              :title="themeMode === 'dark' ? 'ライトモードに切替' : 'ダークモードに切替'"
+              @click="toggleTheme"
             >
-              ログアウト
+              <svg
+                v-if="themeMode === 'dark'"
+                class="w-[18px] h-[18px]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                />
+              </svg>
+              <svg
+                v-else
+                class="w-[18px] h-[18px]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                />
+              </svg>
             </button>
+
+            <!-- User avatar + menu -->
+            <div class="flex items-center gap-1.5 sm:gap-2">
+              <button
+                class="header-icon-btn w-8 h-8 sm:w-9 sm:h-9 !rounded-full bg-surface-2 text-muted font-semibold text-xs sm:text-sm uppercase"
+                :title="auth.currentUser.value?.username"
+              >
+                {{ auth.currentUser.value?.username?.charAt(0) ?? "?" }}
+              </button>
+              <button
+                class="header-icon-btn text-muted/70 hover:text-error"
+                title="ログアウト"
+                @click="handleLogout"
+              >
+                <svg
+                  class="w-[18px] h-[18px]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>
+      <!-- Bottom gradient line -->
+      <div class="h-px w-full bg-gradient-to-r from-transparent via-border/80 to-transparent" />
     </header>
 
     <main :class="auth.isAuthenticated.value ? 'max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8' : ''">
