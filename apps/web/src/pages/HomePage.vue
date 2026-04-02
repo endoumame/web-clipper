@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed, onActivated, onMounted, ref, watch } from "vue";
+import type { Article, Tag } from "@/types/article";
+import { computed, nextTick, onActivated, onMounted, onUnmounted, ref, watch } from "vue";
 import {
   extractDomain,
   formatRelativeDate,
   sourceBadgeStyles,
   sourceLabels,
 } from "@/utils/article-helpers";
-import type { Article } from "@/types/article";
 import { RouterLink } from "vue-router";
 import { useApi } from "@/composables/use-api";
 import { useViewTransition } from "@/composables/use-view-transition";
@@ -24,10 +24,72 @@ const EMPTY_LENGTH = 0;
 const searchQuery = ref("");
 const debouncedQuery = ref("");
 const selectedSource = ref<string>("");
+const selectedTag = ref<Tag | null>(null);
 const articles = ref<Article[]>([]);
 const nextCursor = ref<string | null>(null);
 const isLoading = ref(false);
 const isLoadingMore = ref(false);
+
+// --- Tag filter ---
+const availableTags = ref<Tag[]>([]);
+const showTagDropdown = ref(false);
+const tagSearchQuery = ref("");
+const tagSearchInputRef = ref<HTMLInputElement | null>(null);
+const searchContainerRef = ref<HTMLElement | null>(null);
+
+const POPULAR_TAG_START = 0;
+const POPULAR_TAG_COUNT = 8;
+
+const popularTags = computed((): Tag[] =>
+  [...availableTags.value]
+    .toSorted((left, right) => right.articleCount - left.articleCount)
+    .slice(POPULAR_TAG_START, POPULAR_TAG_COUNT),
+);
+
+const filteredTags = computed((): Tag[] => {
+  if (!tagSearchQuery.value) {
+    return popularTags.value;
+  }
+  const query = tagSearchQuery.value.toLowerCase();
+  return availableTags.value.filter((tag) => tag.name.toLowerCase().includes(query));
+});
+
+const fetchTags = async function fetchTags(): Promise<void> {
+  try {
+    const res = await api.api.tags.$get();
+    if (res.ok) {
+      const data = await res.json();
+      availableTags.value = data.tags;
+    }
+  } catch {
+    // タグ取得失敗は無視
+  }
+};
+
+const selectTag = function selectTag(tag: Tag): void {
+  selectedTag.value = tag;
+  showTagDropdown.value = false;
+  tagSearchQuery.value = "";
+};
+
+const clearTag = function clearTag(): void {
+  selectedTag.value = null;
+};
+
+const toggleTagDropdown = async function toggleTagDropdown(): Promise<void> {
+  showTagDropdown.value = !showTagDropdown.value;
+  if (showTagDropdown.value) {
+    await nextTick();
+    tagSearchInputRef.value?.focus();
+  }
+};
+
+const handleClickOutside = function handleClickOutside(event: MouseEvent): void {
+  if (searchContainerRef.value && !searchContainerRef.value.contains(event.target as Node)) {
+    showTagDropdown.value = false;
+    tagSearchQuery.value = "";
+  }
+};
 
 // --- Source filters ---
 const sourceFilters = [
@@ -65,6 +127,9 @@ const buildQuery = function buildQuery(cursor?: string): Record<string, string> 
   }
   if (selectedSource.value) {
     query.source = selectedSource.value;
+  }
+  if (selectedTag.value) {
+    query.tagId = selectedTag.value.name;
   }
   if (cursor) {
     query.cursor = cursor;
@@ -107,7 +172,7 @@ const loadMore = async function loadMore(): Promise<void> {
 };
 
 // --- Reload on filter change ---
-watch([debouncedQuery, selectedSource], () => {
+watch([debouncedQuery, selectedSource, selectedTag], () => {
   loadArticles();
 });
 
@@ -118,6 +183,12 @@ let isInitialActivation = true;
 
 onMounted(() => {
   loadArticles();
+  fetchTags();
+  document.addEventListener("click", handleClickOutside);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("click", handleClickOutside);
 });
 
 onActivated(async () => {
@@ -133,46 +204,122 @@ onActivated(async () => {
 
 <template>
   <div class="space-y-6">
-    <!-- Search Bar — command palette style -->
-    <div class="search-container group">
-      <div class="absolute inset-y-0 left-0 pl-4 sm:pl-5 flex items-center pointer-events-none">
-        <svg
-          class="w-5 h-5 text-muted/50 transition-colors duration-200 group-focus-within:text-accent"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+    <!-- Search Bar — command palette style with tag filter -->
+    <div ref="searchContainerRef" class="search-container-wrapper">
+      <div class="search-container group">
+        <!-- Search icon -->
+        <div class="absolute inset-y-0 left-0 pl-4 sm:pl-5 flex items-center pointer-events-none">
+          <svg
+            class="w-5 h-5 text-muted/50 transition-colors duration-200 group-focus-within:text-accent"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        </div>
+
+        <!-- Selected tag chip (inside search box) -->
+        <button
+          v-if="selectedTag"
+          class="selected-tag-chip"
+          title="タグフィルターを解除"
+          @click.stop="clearTag"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
-        </svg>
+          <span class="selected-tag-chip-label">{{ selectedTag.name }}</span>
+          <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2.5"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="記事を検索..."
+          class="search-input"
+          :class="{ 'search-input-with-tag': selectedTag }"
+        />
+
+        <!-- Right side controls -->
+        <div class="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center gap-1">
+          <!-- Clear search button -->
+          <button
+            v-if="searchQuery"
+            class="p-1 text-muted/50 hover:text-foreground transition-colors duration-150"
+            @click="searchQuery = ''"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+
+          <!-- Tag filter toggle button -->
+          <button
+            class="tag-filter-btn"
+            :class="{ 'tag-filter-btn-active': showTagDropdown || selectedTag }"
+            title="タグで絞り込み"
+            @click.stop="toggleTagDropdown"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M7 7h.01M7 3h5a1.99 1.99 0 011.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"
+              />
+            </svg>
+          </button>
+
+          <!-- Keyboard shortcut hint -->
+          <kbd
+            class="hidden sm:inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-mono text-muted/40 bg-surface-2/60 border border-border/30 rounded-md"
+          >
+            ⌘K
+          </kbd>
+        </div>
       </div>
-      <input v-model="searchQuery" type="text" placeholder="記事を検索..." class="search-input" />
-      <!-- Clear button -->
-      <button
-        v-if="searchQuery"
-        class="absolute inset-y-0 right-14 flex items-center px-2 text-muted/50 hover:text-foreground transition-colors duration-150"
-        @click="searchQuery = ''"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-      </button>
-      <!-- Keyboard shortcut hint -->
-      <div class="absolute inset-y-0 right-0 pr-4 sm:pr-5 flex items-center pointer-events-none">
-        <kbd
-          class="hidden sm:inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-mono text-muted/40 bg-surface-2/60 border border-border/30 rounded-md"
-        >
-          ⌘K
-        </kbd>
+
+      <!-- Tag dropdown -->
+      <div v-if="showTagDropdown" class="tag-dropdown">
+        <input
+          ref="tagSearchInputRef"
+          v-model="tagSearchQuery"
+          type="text"
+          class="tag-search-input"
+          placeholder="タグを検索..."
+          @click.stop
+        />
+        <div class="tag-dropdown-list">
+          <div v-if="!tagSearchQuery && filteredTags.length > 0" class="tag-dropdown-section-label">
+            よく使われるタグ
+          </div>
+          <button
+            v-for="tag in filteredTags"
+            :key="tag.id"
+            class="tag-dropdown-item"
+            :class="{ 'tag-dropdown-item-selected': selectedTag?.id === tag.id }"
+            @click.stop="selectTag(tag)"
+          >
+            <span class="tag-dropdown-item-name">{{ tag.name }}</span>
+            <span class="tag-dropdown-item-count">{{ tag.articleCount }}件</span>
+          </button>
+          <p v-if="filteredTags.length === 0" class="tag-dropdown-empty">タグが見つかりません</p>
+        </div>
       </div>
     </div>
 
