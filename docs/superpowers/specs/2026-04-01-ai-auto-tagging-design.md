@@ -2,7 +2,7 @@
 
 ## 概要
 
-記事クリッピング時にAIが記事内容を解析し、既存タグから最適なタグを自動付与する。既存タグにマッチしない場合は新規タグも生成する。ユーザーの手間ゼロで記事が整理された状態を維持できる。
+記事クリッピング時に AI が記事内容を解析し、既存タグから最適なタグを自動付与する。既存タグにマッチしない場合は新規タグも生成する。ユーザーの手間ゼロで記事が整理された状態を維持できる。
 
 ## 決定事項
 
@@ -34,7 +34,7 @@ interface TagSuggestionInput {
 }
 ```
 
-- 出力は `TagName[]`（既存VOを再利用、Parse don't validate）
+- 出力は `TagName[]`（既存 VO を再利用、Parse don't validate）
 - 既存タグリストを入力に含めることで「既存タグ優先」のビジネスルールをドメイン層で表現
 
 ### エラー型追加
@@ -66,9 +66,9 @@ interface SuggestAndApplyTagsDeps {
 **処理フロー**:
 
 1. `articleRepo.findById()` で記事を取得
-2. `contentExtractor.extract()` で本文を取得し、先頭6000文字に切り詰め
+2. `contentExtractor.extract()` で本文を取得し、先頭 6000 文字に切り詰め
 3. `tagQuery.list()` で既存タグ名一覧を取得
-4. `tagSuggester.suggest()` でAIにタグを提案させる
+4. `tagSuggester.suggest()` で AI にタグを提案させる
 5. 提案タグと記事の既存タグをマージ（重複排除、ユーザー指定タグを保持）
 6. `ArticleEntity.updateTags()` で記事を更新
 7. `articleRepo.save()` で永続化（`syncTags` が新規タグを `tags` テーブルに自動作成）
@@ -83,20 +83,20 @@ interface SuggestAndApplyTagsDeps {
 
 - AI binding: `env.AI`（既存の `WorkersAiSummarizer` と共有）
 - モデル: `@cf/meta/llama-3.1-8b-instruct-fp8`
-- 本文制限: 先頭6000文字（`ArticleSummarizer` と同じ）
+- 本文制限: 先頭 6000 文字（`ArticleSummarizer` と同じ）
 
 **プロンプト設計方針**:
 
 - システムプロンプトで「既存タグから最適なものを選び、どれも合わない場合のみ短い新規タグを提案」と指示
 - 出力形式は JSON 配列（`["tag1", "tag2"]`）を指定
-- 最大5個に制限してタグの増殖を抑制
+- 最大 5 個に制限してタグの増殖を抑制
 
 **パース戦略**:
 
-- AIレスポンスからJSON配列を抽出
-- 各要素を `TagName` VOでバリデーション
+- AI レスポンスから JSON 配列を抽出
+- 各要素を `TagName` VO でバリデーション
 - バリデーション失敗の個別タグはスキップ（部分的成功を許容）
-- JSON全体のパース失敗 → `TAG_SUGGESTION_FAILED` エラー
+- JSON 全体のパース失敗 → `TAG_SUGGESTION_FAILED` エラー
 
 ### deps-factory.ts
 
@@ -122,7 +122,7 @@ ctx.executionCtx.waitUntil(
 return ctx.json(articleResponse, 201);
 ```
 
-- `waitUntil()` でレスポンス送信後もWorkerを生存させ、非同期でタグ付けを完了
+- `waitUntil()` でレスポンス送信後も Worker を生存させ、非同期でタグ付けを完了
 - エラー時はログ出力のみ。記事保存は成功しているのでユーザーに影響なし
 
 ## 共有パッケージ
@@ -142,7 +142,7 @@ return ctx.json(articleResponse, 201);
 
 ## テスト戦略
 
-- **ドメイン層**: `TagSuggestionInput` の構築テスト（VOのバリデーション）
-- **ユースケース層**: `suggestAndApplyTags` のユニットテスト。`TagSuggester` をモックし、タグマージロジック（重複排除、既存タグ保持）を検証
-- **インフラ層**: `WorkersAiTagSuggester` のテスト。AIレスポンスのJSONパース、部分的成功、パース失敗のケースを検証
-- **統合**: `clipArticle` → `waitUntil` → タグ付け完了後に記事のタグが更新されていることを確認
+- ドメイン層: `TagSuggestionInput` の構築テスト（VO のバリデーション）
+- ユースケース層: `suggestAndApplyTags` のユニットテスト。`TagSuggester` をモックし、タグマージロジック（重複排除、既存タグ保持）を検証
+- インフラ層: `WorkersAiTagSuggester` のテスト。AI レスポンスの JSON パース、部分的成功、パース失敗のケースを検証
+- 統合: `clipArticle` → `waitUntil` → タグ付け完了後に記事のタグが更新されていることを確認
