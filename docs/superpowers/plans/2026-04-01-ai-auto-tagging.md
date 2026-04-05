@@ -2,11 +2,14 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Automatically suggest and apply tags to articles using Cloudflare Workers AI when a new article is clipped, running asynchronously via `ctx.executionCtx.waitUntil()`.
+Goal: 新しい記事のクリッピング時に Cloudflare Workers AI でタグを自動提案・適用する。
+`ctx.executionCtx.waitUntil()` で非同期に実行する。
 
-**Architecture:** Add a `TagSuggester` domain service interface with a `WorkersAiTagSuggester` infrastructure implementation, following the existing `ArticleSummarizer` / `WorkersAiSummarizer` pattern. A new `suggestAndApplyTags` command orchestrates the flow. The `createArticleRoute` handler fires it asynchronously after `clipArticle` succeeds.
+Architecture: 既存の `ArticleSummarizer` / `WorkersAiSummarizer` パターンに倣う。
+`TagSuggester` ドメインサービスインターフェースと `WorkersAiTagSuggester` インフラ実装を追加する。
+`suggestAndApplyTags` コマンドがフローを統制し `createArticleRoute` ハンドラから非同期で起動する。
 
-**Tech Stack:** TypeScript, Cloudflare Workers AI (`@cf/meta/llama-3.1-8b-instruct-fp8`), neverthrow, Zod, Vitest with `@cloudflare/vitest-pool-workers`
+Tech Stack: TypeScript / Cloudflare Workers AI / neverthrow / Zod / Vitest
 
 ---
 
@@ -193,7 +196,11 @@ describe("parseTagSuggestions", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd apps/api && pnpm vitest run src/infrastructure/services/workers-ai-tag-suggester.test.ts`
+Run:
+
+```sh
+cd apps/api && pnpm vitest run src/infrastructure/services/workers-ai-tag-suggester.test.ts
+```
 Expected: FAIL — `parseTagSuggestions` does not exist yet.
 
 - [ ] **Step 3: Write the implementation**
@@ -295,7 +302,11 @@ export { createWorkersAiTagSuggester, parseTagSuggestions };
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd apps/api && pnpm vitest run src/infrastructure/services/workers-ai-tag-suggester.test.ts`
+Run:
+
+```sh
+cd apps/api && pnpm vitest run src/infrastructure/services/workers-ai-tag-suggester.test.ts
+```
 Expected: All 6 tests PASS.
 
 - [ ] **Step 5: Run full typecheck**
@@ -465,7 +476,11 @@ describe("suggestAndApplyTags", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd apps/api && pnpm vitest run src/application/commands/suggest-and-apply-tags.test.ts`
+Run:
+
+```sh
+cd apps/api && pnpm vitest run src/application/commands/suggest-and-apply-tags.test.ts
+```
 Expected: FAIL — module does not exist.
 
 - [ ] **Step 3: Write the command implementation**
@@ -559,7 +574,11 @@ export { suggestAndApplyTags } from "./suggest-and-apply-tags.js";
 
 - [ ] **Step 5: Run test to verify it passes**
 
-Run: `cd apps/api && pnpm vitest run src/application/commands/suggest-and-apply-tags.test.ts`
+Run:
+
+```sh
+cd apps/api && pnpm vitest run src/application/commands/suggest-and-apply-tags.test.ts
+```
 Expected: All 4 tests PASS.
 
 - [ ] **Step 6: Run full typecheck**
