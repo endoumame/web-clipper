@@ -1,3 +1,4 @@
+import type { AppEnv, Deps } from "../types.js";
 import type { HTTP_CONFLICT, HTTP_INTERNAL_ERROR } from "../http-status.js";
 import { HTTP_NO_CONTENT, HTTP_OK, HTTP_REDIRECT, HTTP_UNAUTHORIZED } from "../http-status.js";
 import {
@@ -17,7 +18,6 @@ import {
 } from "./auth-route-defs.js";
 import { domainErrorToResponse, domainErrorToStatus } from "../middleware/error-handler.js";
 import { githubOAuthCallback, login, logout, setupUser } from "../../application/commands/index.js";
-import type { AppEnv } from "../types.js";
 import type { Context } from "hono";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { getCookie } from "hono/cookie";
@@ -54,36 +54,12 @@ const buildOAuthStateCookie = (state: string): string =>
 
 const CLEAR_OAUTH_STATE_COOKIE = "oauth_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0";
 
-interface GithubOAuthDeps {
-  githubOAuth: {
-    exchangeCode: (code: string, uri: string) => Promise<string>;
-    fetchUser: (token: string) => Promise<{ id: number; login: string }>;
-  };
-}
-
-type GithubExchangeResult =
-  | { githubUser: { id: number; login: string } }
-  | { error: string; message: string };
-
-const exchangeAndFetchGithubUser = async (
-  deps: GithubOAuthDeps,
+const exchangeAndFetchGithubUser = (
+  githubOAuth: Deps["githubOAuth"],
   code: string,
   redirectUri: string,
-): Promise<GithubExchangeResult> => {
-  let accessToken = "";
-  try {
-    accessToken = await deps.githubOAuth.exchangeCode(code, redirectUri);
-  } catch {
-    return { error: "OAUTH_ERROR", message: "Failed to get access token" };
-  }
-
-  try {
-    const githubUser = await deps.githubOAuth.fetchUser(accessToken);
-    return { githubUser };
-  } catch {
-    return { error: "OAUTH_ERROR", message: "Failed to get GitHub user info" };
-  }
-};
+): ReturnType<Deps["githubOAuth"]["fetchUser"]> =>
+  githubOAuth.exchangeCode(code, redirectUri).andThen((token) => githubOAuth.fetchUser(token));
 
 const isValidState = (savedState: string | null | undefined, state: string): boolean =>
   typeof savedState === "string" && savedState !== "" && savedState === state;
@@ -109,19 +85,17 @@ const validateOAuthState = (ctx: Context<AppEnv>, state: string): Response | nul
 const processGithubOAuth = async (ctx: Context<AppEnv>, code: string): Promise<Response> => {
   const deps = ctx.get("deps");
   const redirectUri = buildGithubRedirectUri(ctx.env.ALLOWED_ORIGIN);
-  const tokenResult = await exchangeAndFetchGithubUser(deps, code, redirectUri);
 
-  if ("error" in tokenResult) {
-    return ctx.json(tokenResult, HTTP_UNAUTHORIZED);
-  }
-
-  const result = await githubOAuthCallback({
-    sessionRepo: deps.sessionRepo,
-    userRepo: deps.userRepo,
-  })({
-    githubId: String(tokenResult.githubUser.id),
-    githubUsername: tokenResult.githubUser.login,
-  });
+  const result = await exchangeAndFetchGithubUser(deps.githubOAuth, code, redirectUri).andThen(
+    (githubUser) =>
+      githubOAuthCallback({
+        sessionRepo: deps.sessionRepo,
+        userRepo: deps.userRepo,
+      })({
+        githubId: String(githubUser.id),
+        githubUsername: githubUser.login,
+      }),
+  );
 
   return result.match(
     ({ session }) => {
