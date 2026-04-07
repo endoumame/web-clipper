@@ -20,6 +20,9 @@ type DomainError =
   | { readonly type: "INVALID_USER_ID"; readonly message: string }
   | { readonly type: "INVALID_SESSION_ID"; readonly message: string }
   | { readonly type: "SUMMARY_GENERATION_FAILED"; readonly cause: string }
-  | { readonly type: "TAG_SUGGESTION_FAILED"; readonly cause: string };
+  | { readonly type: "TAG_SUGGESTION_FAILED"; readonly cause: string }
+  | { readonly type: "HIGHLIGHT_NOT_FOUND"; readonly id: string }
+  | { readonly type: "CONTENT_NOT_AVAILABLE"; readonly articleId: string }
+  | { readonly type: "INVALID_HIGHLIGHT_ID"; readonly message: string };
 
 export type { DomainError };

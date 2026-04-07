@@ -2,6 +2,8 @@
 import type { Bindings, Deps } from "../presentation/types.js";
 import { createD1ArticleQueryService } from "./persistence/d1-article-query-service.js";
 import { createD1ArticleRepository } from "./persistence/d1-article-repository.js";
+import { createD1HighlightQueryService } from "./persistence/d1-highlight-query-service.js";
+import { createD1HighlightRepository } from "./persistence/d1-highlight-repository.js";
 import { createD1SessionRepository } from "./persistence/d1-session-repository.js";
 import { createD1TagQueryService } from "./persistence/d1-tag-query-service.js";
 import { createD1TagRepository } from "./persistence/d1-tag-repository.js";
@@ -22,6 +24,8 @@ const createDeps = (env: Bindings): Deps => {
     contentExtractor: createReadabilityContentExtractor(),
     db,
     githubOAuth: createGitHubOAuthClient(env.GITHUB_CLIENT_ID, env.GITHUB_CLIENT_SECRET),
+    highlightQuery: createD1HighlightQueryService(db),
+    highlightRepo: createD1HighlightRepository(db),
     metadataFetcher: createFetchMetadataFetcher(),
     passwordHasher: createWebCryptoPasswordHasher(),
     sessionRepo: createD1SessionRepository(db),

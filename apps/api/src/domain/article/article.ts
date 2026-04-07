@@ -12,6 +12,7 @@ interface Article {
   readonly ogImageUrl: string | null;
   readonly memo: string | null;
   readonly aiSummary: string | null;
+  readonly content: string | null;
   readonly isRead: boolean;
   readonly tags: readonly TagName[];
   readonly createdAt: Date;
@@ -26,6 +27,7 @@ interface CreateParams {
   readonly source: Source;
   readonly ogImageUrl: string | null;
   readonly memo: string | null;
+  readonly content: string | null;
   readonly tags: readonly TagName[];
 }
 
@@ -76,12 +78,19 @@ const updateAiSummary = (article: Article, aiSummary: string): Article => ({
   updatedAt: new Date(),
 });
 
+const updateContent = (article: Article, content: string): Article => ({
+  ...article,
+  content,
+  updatedAt: new Date(),
+});
+
 const ArticleEntity = {
   create,
   markAsRead,
   markAsUnread,
   reconstruct,
   updateAiSummary,
+  updateContent,
   updateMemo,
   updateTags,
 } as const;

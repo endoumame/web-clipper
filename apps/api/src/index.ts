@@ -1,3 +1,4 @@
+// oxlint-disable import/max-dependencies -- App entry point necessarily imports all route modules
 import type { AppEnv, Bindings } from "./presentation/types.js";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { Scalar } from "@scalar/hono-api-reference";
@@ -6,6 +7,7 @@ import { authRoutes } from "./presentation/routes/auth.js";
 import { cors } from "hono/cors";
 import { createDeps } from "./infrastructure/deps-factory.js";
 import { healthRoutes } from "./presentation/routes/health.js";
+import { highlightRoutes } from "./presentation/routes/highlights.js";
 import { sessionAuth } from "./presentation/middleware/auth.js";
 import { tagRoutes } from "./presentation/routes/tags.js";
 
@@ -48,6 +50,7 @@ const app = base
   .route("/", healthRoutes)
   .route("/", authRoutes)
   .route("/", articleRoutes)
+  .route("/", highlightRoutes)
   .route("/", tagRoutes);
 
 // --- OpenAPI spec endpoint ---

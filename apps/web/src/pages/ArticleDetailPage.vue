@@ -10,6 +10,7 @@ import {
 import { useRoute, useRouter } from "vue-router";
 import type { Article } from "@/types/article";
 import { useApi } from "@/composables/use-api";
+import { useHighlights } from "@/composables/use-highlights";
 import { useViewTransition } from "@/composables/use-view-transition";
 
 const route = useRoute();
@@ -43,6 +44,23 @@ const summaryError = ref<string | null>(null);
 // 削除
 const deleting = ref(false);
 const showDeleteConfirm = ref(false);
+
+// ハイライト
+const markdownContent = computed(() => article.value?.content ?? null);
+const {
+  highlights,
+  contentRef,
+  selection,
+  clearSelection,
+  savingHighlight,
+  highlightNote,
+  highlightColor,
+  highlightColors,
+  renderedContent,
+  fetchHighlights,
+  saveHighlight,
+  removeHighlight,
+} = useHighlights(articleId, markdownContent, api);
 
 const HTTP_NOT_FOUND = 404;
 const HISTORY_BACK_STEPS = -1;
@@ -267,6 +285,7 @@ const deleteArticle = async function deleteArticle(): Promise<void> {
 onMounted(() => {
   fetchArticle();
   fetchAllTags();
+  fetchHighlights();
 });
 </script>
 
@@ -532,6 +551,87 @@ onMounted(() => {
         <p v-else class="text-sm text-muted/50 font-body">
           ボタンを押すとAIが記事の内容を要約します
         </p>
+      </div>
+
+      <!-- 記事本文 & ハイライト -->
+      <div v-if="renderedContent" class="card-base p-5 mt-5 relative">
+        <span class="section-title mb-3 block">記事本文</span>
+        <!-- eslint-disable-next-line vue/no-v-html -- rendered markdown content -->
+        <div
+          ref="contentRef"
+          class="prose prose-sm max-w-none text-foreground/80 font-body leading-relaxed"
+          v-html="renderedContent"
+        />
+
+        <!-- ハイライトツールバー -->
+        <div
+          v-if="selection"
+          class="fixed z-50 bg-surface border border-border rounded-lg shadow-lg p-3 min-w-60"
+          :style="{ left: `${selection.rect.left}px`, top: `${selection.rect.bottom + 8}px` }"
+        >
+          <p class="text-xs text-muted mb-2 truncate">
+            "{{ selection.text.slice(0, 60) }}{{ selection.text.length > 60 ? "..." : "" }}"
+          </p>
+          <div class="flex gap-1.5 mb-2">
+            <button
+              v-for="c in highlightColors"
+              :key="c"
+              class="w-5 h-5 rounded-full border-2 transition-transform"
+              :class="highlightColor === c ? 'border-foreground scale-110' : 'border-transparent'"
+              :style="{ backgroundColor: c }"
+              @click="highlightColor = c"
+            />
+          </div>
+          <input
+            v-model="highlightNote"
+            type="text"
+            class="input-base text-xs mb-2"
+            placeholder="メモを追加（任意）"
+          />
+          <div class="flex gap-2">
+            <button
+              :disabled="savingHighlight"
+              class="btn-primary text-xs px-3 py-1"
+              @click="saveHighlight"
+            >
+              {{ savingHighlight ? "保存中..." : "ハイライト" }}
+            </button>
+            <button class="btn-ghost text-xs" @click="clearSelection">キャンセル</button>
+          </div>
+        </div>
+      </div>
+      <div v-else-if="article.content === null" class="card-base p-5 mt-5">
+        <span class="section-title mb-3 block">記事本文</span>
+        <p class="text-sm text-muted/50 font-body">本文はまだ取得されていません</p>
+      </div>
+
+      <!-- ハイライト一覧 -->
+      <div v-if="highlights.length > 0" class="card-base p-5 mt-5">
+        <span class="section-title mb-3 block">ハイライト ({{ highlights.length }})</span>
+        <div class="space-y-3">
+          <div
+            v-for="hl in highlights"
+            :key="hl.id"
+            class="flex items-start gap-3 p-3 rounded-lg bg-surface-2/50"
+          >
+            <span
+              class="w-3 h-3 rounded-full flex-shrink-0 mt-1"
+              :style="{ backgroundColor: hl.color }"
+            />
+            <div class="min-w-0 flex-1">
+              <p class="text-sm text-foreground/80 font-body line-clamp-2">
+                {{ hl.highlightedText }}
+              </p>
+              <p v-if="hl.note" class="text-xs text-muted mt-1 font-body">{{ hl.note }}</p>
+            </div>
+            <button
+              class="text-muted/50 hover:text-error text-xs flex-shrink-0"
+              @click="removeHighlight(hl.id)"
+            >
+              削除
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- 既読/未読トグル -->

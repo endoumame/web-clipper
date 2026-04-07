@@ -23,6 +23,7 @@ import { SourceSchema } from "@web-clipper/shared";
 
 interface ArticleInput {
   aiSummary: string | null;
+  content: string | null;
   createdAt: Date;
   description: string | null;
   id: string;
@@ -40,6 +41,7 @@ const toArticleResponse = (
   article: ArticleInput,
 ): {
   aiSummary: string | null;
+  content: string | null;
   createdAt: string;
   description: string | null;
   id: string;
@@ -53,6 +55,7 @@ const toArticleResponse = (
   url: string;
 } => ({
   aiSummary: article.aiSummary,
+  content: article.content,
   createdAt: article.createdAt.toISOString(),
   description: article.description,
   id: article.id,
@@ -83,6 +86,7 @@ const articleRoutes = new OpenAPIHono<AppEnv>()
         articles: result.articles.map((item) => ({
           ...item,
           aiSummary: null,
+          content: null,
           createdAt: item.createdAt.toISOString(),
           description: item.description ?? null,
           memo: null,
@@ -110,6 +114,7 @@ const articleRoutes = new OpenAPIHono<AppEnv>()
     const body = ctx.req.valid("json");
     const result = await clipArticle({
       articleRepo: deps.articleRepo,
+      contentExtractor: deps.contentExtractor,
       metadataFetcher: deps.metadataFetcher,
     })({ memo: body.memo, tags: body.tags, url: body.url });
     return result.match(

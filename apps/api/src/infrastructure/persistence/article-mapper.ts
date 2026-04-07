@@ -9,6 +9,7 @@ type ArticleRow = InferSelectModel<typeof articles>;
 const articleToDomain = (row: ArticleRow, tagNames: string[]): Article =>
   ArticleEntity.reconstruct({
     aiSummary: row.aiSummary,
+    content: row.content,
     createdAt: row.createdAt,
     description: row.description,
     id: ArticleIdVO.schema.parse(row.id),
@@ -29,6 +30,7 @@ const articleToPersistence = (
   updatedAt: Date;
 } => ({
   aiSummary: article.aiSummary,
+  content: article.content,
   createdAt: article.createdAt,
   description: article.description,
   id: article.id,
