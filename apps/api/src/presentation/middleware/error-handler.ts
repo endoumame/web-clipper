@@ -3,8 +3,11 @@ import type { DomainError } from "../../domain/shared/index.js";
 const STATUS_MAP = {
   ARTICLE_ALREADY_EXISTS: 409,
   ARTICLE_NOT_FOUND: 404,
+  CONTENT_NOT_AVAILABLE: 400,
+  HIGHLIGHT_NOT_FOUND: 404,
   INVALID_ARTICLE_ID: 400,
   INVALID_CREDENTIALS: 401,
+  INVALID_HIGHLIGHT_ID: 400,
   INVALID_SESSION_ID: 400,
   INVALID_TAG_NAME: 400,
   INVALID_URL: 400,
@@ -27,40 +30,30 @@ const domainErrorToStatus = <StatusCode extends DomainStatusCode>(error: DomainE
   // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Hono requires exact status code literals; centralizing the only unavoidable cast here
   STATUS_MAP[error.type] as StatusCode;
 
+const isNotFoundError = (
+  error: DomainError,
+): error is Extract<
+  DomainError,
+  { type: "ARTICLE_NOT_FOUND" | "HIGHLIGHT_NOT_FOUND" | "TAG_NOT_FOUND" }
+> =>
+  error.type === "ARTICLE_NOT_FOUND" ||
+  error.type === "HIGHLIGHT_NOT_FOUND" ||
+  error.type === "TAG_NOT_FOUND";
+
 const toMessageWithCause = (error: DomainError): string => {
-  switch (error.type) {
-    case "INVALID_URL":
-    case "INVALID_TAG_NAME":
-    case "INVALID_ARTICLE_ID":
-    case "INVALID_USER_ID":
-    case "INVALID_SESSION_ID":
-    case "INVALID_CREDENTIALS":
-    case "SESSION_NOT_FOUND":
-    case "SESSION_EXPIRED":
-    case "SETUP_ALREADY_COMPLETED":
-    case "OAUTH_ERROR":
-    case "METADATA_FETCH_FAILED":
-    case "STORAGE_ERROR":
-    case "SUMMARY_GENERATION_FAILED":
-    case "TAG_SUGGESTION_FAILED": {
-      return "";
-    }
-    case "ARTICLE_NOT_FOUND": {
-      return `Article not found: ${error.id}`;
-    }
-    case "TAG_NOT_FOUND": {
-      return `Tag not found: ${error.id}`;
-    }
-    case "ARTICLE_ALREADY_EXISTS": {
-      return `Article already exists: ${error.url}`;
-    }
-    case "TAG_ALREADY_EXISTS": {
-      return `Tag already exists: ${error.name}`;
-    }
-    default: {
-      return "";
-    }
+  if (isNotFoundError(error)) {
+    return `${error.type.replaceAll("_", " ").toLowerCase()}: ${error.id}`;
   }
+  if (error.type === "CONTENT_NOT_AVAILABLE") {
+    return `Content not available for article: ${error.articleId}`;
+  }
+  if (error.type === "ARTICLE_ALREADY_EXISTS") {
+    return `Article already exists: ${error.url}`;
+  }
+  if (error.type === "TAG_ALREADY_EXISTS") {
+    return `Tag already exists: ${error.name}`;
+  }
+  return "";
 };
 
 const getStorageErrorCause = (cause: unknown): string => {
@@ -70,42 +63,31 @@ const getStorageErrorCause = (cause: unknown): string => {
   return String(cause);
 };
 
-const toMessageForErrorTypes = (error: DomainError): string => {
-  switch (error.type) {
-    case "METADATA_FETCH_FAILED": {
-      return `Failed to fetch metadata from ${error.url}: ${error.cause}`;
-    }
-    case "SUMMARY_GENERATION_FAILED": {
-      return `AI summary generation failed: ${error.cause}`;
-    }
-    case "TAG_SUGGESTION_FAILED": {
-      return `AI tag suggestion failed: ${error.cause}`;
-    }
-    case "STORAGE_ERROR": {
-      return `Internal storage error: ${getStorageErrorCause(error.cause)}`;
-    }
-    case "INVALID_URL":
-    case "INVALID_TAG_NAME":
-    case "INVALID_ARTICLE_ID":
-    case "INVALID_USER_ID":
-    case "INVALID_SESSION_ID":
-    case "INVALID_CREDENTIALS":
-    case "SESSION_NOT_FOUND":
-    case "SESSION_EXPIRED":
-    case "SETUP_ALREADY_COMPLETED":
-    case "OAUTH_ERROR": {
-      return error.message;
-    }
-    case "ARTICLE_NOT_FOUND":
-    case "TAG_NOT_FOUND":
-    case "ARTICLE_ALREADY_EXISTS":
-    case "TAG_ALREADY_EXISTS": {
-      return "Unknown error";
-    }
-    default: {
-      return "Unknown error";
-    }
+const hasMessageField = (error: DomainError): error is Extract<DomainError, { message: string }> =>
+  "message" in error;
+
+const formatCauseError = (error: DomainError): string | null => {
+  if (error.type === "METADATA_FETCH_FAILED") {
+    return `Failed to fetch metadata from ${error.url}: ${error.cause}`;
   }
+  if (error.type === "SUMMARY_GENERATION_FAILED") {
+    return `AI summary generation failed: ${error.cause}`;
+  }
+  if (error.type === "TAG_SUGGESTION_FAILED") {
+    return `AI tag suggestion failed: ${error.cause}`;
+  }
+  if (error.type === "STORAGE_ERROR") {
+    return `Internal storage error: ${getStorageErrorCause(error.cause)}`;
+  }
+  return null;
+};
+
+const toMessageForErrorTypes = (error: DomainError): string => {
+  const causeError = formatCauseError(error);
+  if (causeError !== null) {
+    return causeError;
+  }
+  return hasMessageField(error) ? error.message : "Unknown error";
 };
 
 const toMessage = (error: DomainError): string => {

@@ -2,6 +2,7 @@ import { integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 const articles = sqliteTable("articles", {
   aiSummary: text("ai_summary"),
+  content: text("content"),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
   description: text("description"),
   id: text("id").primaryKey(),
@@ -12,6 +13,22 @@ const articles = sqliteTable("articles", {
   title: text("title").notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
   url: text("url").notNull().unique(),
+});
+
+const highlights = sqliteTable("highlights", {
+  articleId: text("article_id")
+    .notNull()
+    .references(() => articles.id, { onDelete: "cascade" }),
+  color: text("color").notNull().default("yellow"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  endOffset: integer("end_offset").notNull(),
+  highlightedText: text("highlighted_text").notNull(),
+  id: text("id").primaryKey(),
+  note: text("note"),
+  prefixContext: text("prefix_context").notNull().default(""),
+  startOffset: integer("start_offset").notNull(),
+  suffixContext: text("suffix_context").notNull().default(""),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
 
 const tags = sqliteTable("tags", {
@@ -52,4 +69,4 @@ const sessions = sqliteTable("sessions", {
     .references(() => users.id, { onDelete: "cascade" }),
 });
 
-export { articles, articleTags, sessions, tags, users };
+export { articles, articleTags, highlights, sessions, tags, users };

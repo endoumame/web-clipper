@@ -34,6 +34,7 @@ interface ArticleDetail {
   readonly ogImageUrl: string | null;
   readonly memo: string | null;
   readonly aiSummary: string | null;
+  readonly content: string | null;
   readonly isRead: boolean;
   readonly tags: readonly string[];
   readonly createdAt: Date;

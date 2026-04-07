@@ -1,6 +1,8 @@
 export { clipArticle } from "./clip-article.js";
+export { createHighlight } from "./create-highlight.js";
 export { createTag } from "./create-tag.js";
 export { deleteArticle } from "./delete-article.js";
+export { deleteHighlight } from "./delete-highlight.js";
 export { deleteTag } from "./delete-tag.js";
 export { generateSummary } from "./generate-summary.js";
 export { suggestAndApplyTags } from "./suggest-and-apply-tags.js";
@@ -9,3 +11,4 @@ export { login } from "./login.js";
 export { logout } from "./logout.js";
 export { setupUser } from "./setup-user.js";
 export { updateArticle } from "./update-article.js";
+export { updateHighlight } from "./update-highlight.js";

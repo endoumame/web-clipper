@@ -1,5 +1,6 @@
 interface Article {
   aiSummary: string | null;
+  content: string | null;
   createdAt: string;
   description: string | null;
   id: string;
@@ -24,6 +25,20 @@ interface Article {
   url: string;
 }
 
+interface Highlight {
+  id: string;
+  articleId: string;
+  highlightedText: string;
+  note: string | null;
+  startOffset: number;
+  endOffset: number;
+  prefixContext: string;
+  suffixContext: string;
+  color: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface Tag {
   articleCount: number;
   createdAt: string;
@@ -31,4 +46,4 @@ interface Tag {
   name: string;
 }
 
-export type { Article, Tag };
+export type { Article, Highlight, Tag };

@@ -25,6 +25,7 @@ type UpdateArticleInput = z.infer<typeof UpdateArticleInputSchema>;
 // ArticleResponse - API response shape
 const ArticleResponseSchema = z.object({
   aiSummary: z.string().nullable(),
+  content: z.string().nullable(),
   // ISO 8601
   createdAt: z.string(),
   description: z.string().nullable(),

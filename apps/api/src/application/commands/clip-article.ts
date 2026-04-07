@@ -1,4 +1,9 @@
-import type { Article, ArticleRepository, MetadataFetcher } from "../../domain/article/index.js";
+import type {
+  Article,
+  ArticleRepository,
+  ContentExtractor,
+  MetadataFetcher,
+} from "../../domain/article/index.js";
 import { ArticleEntity, ArticleIdVO, ArticleUrlVO, SourceVO } from "../../domain/article/index.js";
 import { err, ok } from "neverthrow";
 import type { DomainError } from "../../domain/shared/index.js";
@@ -7,6 +12,7 @@ import { TagNameVO } from "../../domain/tag/index.js";
 
 interface ClipArticleDeps {
   readonly articleRepo: ArticleRepository;
+  readonly contentExtractor: ContentExtractor;
   readonly metadataFetcher: MetadataFetcher;
 }
 
@@ -30,13 +36,20 @@ const clipArticle = (
         }),
       )
       .andThen((url) => deps.metadataFetcher.fetch(url).map((metadata) => ({ metadata, url })))
-      .andThen(({ url, metadata }) => {
+      .andThen(({ url, metadata }) =>
+        deps.contentExtractor
+          .extract(url)
+          .map((content) => ({ content, metadata, url }))
+          .orElse(() => ok({ content: null as string | null, metadata, url })),
+      )
+      .andThen(({ url, metadata, content }) => {
         const tagsResult = TagNameVO.validateMany(input.tags);
         if (tagsResult.isErr()) {
           return err(tagsResult.error);
         }
 
         const article = ArticleEntity.create({
+          content,
           description: metadata.description,
           id: ArticleIdVO.generate(),
           memo: input.memo ?? null,
