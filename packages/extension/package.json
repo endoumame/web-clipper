@@ -1,0 +1,24 @@
+{
+  "name": "@web-clipper/extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "build:watch": "vite build --watch",
+    "typecheck": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "@web-clipper/shared": "workspace:*",
+    "vue": "^3.5.31",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.318",
+    "@vitejs/plugin-vue": "^6.0.5",
+    "esbuild": "^0.27.0",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.3",
+    "vue-tsc": "^3.2.6"
+  }
+}

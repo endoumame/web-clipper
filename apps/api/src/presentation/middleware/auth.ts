@@ -6,6 +6,7 @@ import type { Session } from "../../domain/session/index.js";
 import { getCookie } from "hono/cookie";
 
 const UNAUTHORIZED_STATUS = 401;
+const BEARER_PREFIX = "Bearer ";
 
 const unauthorizedResponse = (ctx: Context<AppEnv>, message: string): Response =>
   ctx.json({ error: "UNAUTHORIZED", message }, UNAUTHORIZED_STATUS);
@@ -27,12 +28,24 @@ const findValidSession = async (
   );
 };
 
-export const sessionAuth = async (
-  ctx: Context<AppEnv>,
-  next: Next,
-): Promise<Response | undefined> => {
-  const sessionId = getCookie(ctx, SESSION_COOKIE_NAME);
-  if (typeof sessionId !== "string" || sessionId === "") {
+const extractSessionId = (ctx: Context<AppEnv>): string | null => {
+  const cookieValue = getCookie(ctx, SESSION_COOKIE_NAME);
+  if (typeof cookieValue === "string" && cookieValue !== "") {
+    return cookieValue;
+  }
+  const authHeader = ctx.req.header("Authorization");
+  if (typeof authHeader === "string" && authHeader.startsWith(BEARER_PREFIX)) {
+    const token = authHeader.slice(BEARER_PREFIX.length);
+    if (token !== "") {
+      return token;
+    }
+  }
+  return null;
+};
+
+const sessionAuth = async (ctx: Context<AppEnv>, next: Next): Promise<Response | undefined> => {
+  const sessionId = extractSessionId(ctx);
+  if (sessionId === null) {
     return unauthorizedResponse(ctx, "Authentication required");
   }
 
@@ -44,3 +57,5 @@ export const sessionAuth = async (
 
   await next();
 };
+
+export { extractSessionId, sessionAuth };

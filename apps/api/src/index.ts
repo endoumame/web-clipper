@@ -17,7 +17,7 @@ const base = new OpenAPIHono<AppEnv>();
 base.use(
   "/api/*",
   cors({
-    allowHeaders: ["Content-Type"],
+    allowHeaders: ["Content-Type", "Authorization"],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
     origin: (origin, ctx) => {
@@ -28,6 +28,9 @@ base.use(
         return origin;
       }
       if (origin === allowedOrigin) {
+        return origin;
+      }
+      if (origin.startsWith("chrome-extension://")) {
         return origin;
       }
       return "";
