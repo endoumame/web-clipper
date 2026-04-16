@@ -10,7 +10,7 @@ import { eq, inArray } from "drizzle-orm";
 import type { DomainError } from "../../domain/shared/index.js";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { ResultAsync } from "neverthrow";
-import { nanoid } from "nanoid";
+import { TagIdVO } from "../../domain/tag/index.js";
 
 const EMPTY_LENGTH = 0;
 
@@ -42,7 +42,7 @@ const syncTags = async (db: DrizzleD1Database, article: Article): Promise<void> 
       const now = new Date();
       await db
         .insert(tags)
-        .values(missingNames.map((name) => ({ createdAt: now, id: nanoid(), name })));
+        .values(missingNames.map((name) => ({ createdAt: now, id: TagIdVO.generate(), name })));
     }
 
     const allTags = await db.select().from(tags).where(inArray(tags.name, article.tags)).all();

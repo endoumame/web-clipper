@@ -1,6 +1,7 @@
 type DomainError =
   | { readonly type: "INVALID_URL"; readonly message: string }
   | { readonly type: "INVALID_TAG_NAME"; readonly message: string }
+  | { readonly type: "INVALID_TAG_ID"; readonly message: string }
   | { readonly type: "INVALID_ARTICLE_ID"; readonly message: string }
   | { readonly type: "ARTICLE_NOT_FOUND"; readonly id: string }
   | { readonly type: "ARTICLE_ALREADY_EXISTS"; readonly url: string }
