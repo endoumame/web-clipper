@@ -7,7 +7,7 @@ import type {
 import { and, desc, eq, like, lt } from "drizzle-orm";
 import { articleTags, articles, tags } from "./schema.js";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { SourceVO } from "../../domain/article/index.js";
+import { Source } from "../../domain/article/index.js";
 
 const DEFAULT_LIMIT = 20;
 const EXTRA_FETCH = 1;
@@ -131,8 +131,8 @@ const fetchRowsWithoutTagQuery = async (
   return result;
 };
 
-const parseSource = (source: string): ReturnType<typeof SourceVO.schema.parse> =>
-  SourceVO.schema.parse(source);
+const parseSource = (source: string): ReturnType<typeof Source.schema.parse> =>
+  Source.schema.parse(source);
 
 const buildResult = (rows: ArticleListRow[], limit: number): ListArticlesResult => {
   const hasNext = rows.length > limit;

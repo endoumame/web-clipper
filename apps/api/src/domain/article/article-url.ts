@@ -18,7 +18,6 @@ const create = (input: string): Result<ArticleUrl, DomainError> => {
   return ok(parsed.data);
 };
 
-const ArticleUrlVO = { create, schema: ArticleUrlSchema } as const;
+const ArticleUrl = { create, schema: ArticleUrlSchema } as const;
 
-export { ArticleUrlVO };
-export type { ArticleUrl };
+export { ArticleUrl };

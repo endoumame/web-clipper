@@ -33,7 +33,6 @@ const validateMany = (inputs: readonly string[]): Result<readonly TagName[], Dom
   return ok(validated);
 };
 
-const TagNameVO = { create, schema: TagNameSchema, validateMany } as const;
+const TagName = { create, schema: TagNameSchema, validateMany } as const;
 
-export { TagNameVO };
-export type { TagName };
+export { TagName };

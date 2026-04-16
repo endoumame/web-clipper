@@ -1,10 +1,10 @@
 import type { Article, ArticleRepository, ContentExtractor } from "../../domain/article/index.js";
-import { ArticleEntity, ArticleIdVO } from "../../domain/article/index.js";
+import { ArticleEntity, ArticleId } from "../../domain/article/index.js";
 import { ResultAsync, err, ok } from "neverthrow";
-import type { TagName, TagSuggester } from "../../domain/tag/index.js";
 import type { DomainError } from "../../domain/shared/index.js";
-import { TagNameVO } from "../../domain/tag/index.js";
+import { TagName } from "../../domain/tag/index.js";
 import type { TagQueryService } from "../../application/queries/tag-query-service.js";
+import type { TagSuggester } from "../../domain/tag/index.js";
 
 interface SuggestAndApplyTagsDeps {
   readonly articleRepo: ArticleRepository;
@@ -32,7 +32,7 @@ const suggestAndApplyTags = (
   deps: SuggestAndApplyTagsDeps,
 ): ((id: string) => ResultAsync<Article, DomainError>) =>
   function executeSuggestAndApplyTags(id: string): ResultAsync<Article, DomainError> {
-    return ArticleIdVO.create(id)
+    return ArticleId.create(id)
       .asyncAndThen((articleId) => deps.articleRepo.findById(articleId))
       .andThen((article) => {
         if (article) {
@@ -46,7 +46,7 @@ const suggestAndApplyTags = (
       .andThen(({ article, content }) =>
         ResultAsync.fromSafePromise(deps.tagQuery.list()).map((allTags) => {
           const systemTagNames = allTags
-            .map((tag) => TagNameVO.create(tag.name))
+            .map((tag) => TagName.create(tag.name))
             .filter((result) => result.isOk())
             .map((result) => result.value);
           return { article, content, systemTagNames };

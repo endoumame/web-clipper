@@ -1,12 +1,11 @@
-import { createBrandedIdVO } from "../shared/branded-id.js";
+import { createBrandedId } from "../shared/branded-id.js";
 import type { z } from "zod";
 
-const TagIdVO = createBrandedIdVO({
+const TagId = createBrandedId({
   brand: "TagId",
   invalidError: (message) => ({ message, type: "INVALID_TAG_ID" }),
 });
 
-type TagId = z.infer<typeof TagIdVO.schema>;
+type TagId = z.infer<typeof TagId.schema>;
 
-export { TagIdVO };
-export type { TagId };
+export { TagId };

@@ -1,5 +1,5 @@
 import type { Context, Next } from "hono";
-import { SessionEntity, SessionIdVO } from "../../domain/session/index.js";
+import { SessionEntity, SessionId } from "../../domain/session/index.js";
 import type { AppEnv } from "../types.js";
 import { SESSION_COOKIE_NAME } from "./cookie.js";
 import type { Session } from "../../domain/session/index.js";
@@ -14,7 +14,7 @@ const findValidSession = async (
   ctx: Context<AppEnv>,
   sessionId: string,
 ): Promise<Session | null> => {
-  const parsed = SessionIdVO.create(sessionId);
+  const parsed = SessionId.create(sessionId);
   if (parsed.isErr()) {
     return null;
   }

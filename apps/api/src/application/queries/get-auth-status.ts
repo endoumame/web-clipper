@@ -1,4 +1,4 @@
-import { SessionEntity, SessionIdVO } from "../../domain/session/index.js";
+import { SessionEntity, SessionId } from "../../domain/session/index.js";
 import type { DomainError } from "../../domain/shared/index.js";
 import type { ResultAsync } from "neverthrow";
 import type { SessionRepository } from "../../domain/session/index.js";
@@ -40,7 +40,7 @@ const getAuthStatus = (
       return unauthenticated(deps);
     }
 
-    const parsed = SessionIdVO.create(sessionId);
+    const parsed = SessionId.create(sessionId);
     if (parsed.isErr()) {
       return unauthenticated(deps);
     }

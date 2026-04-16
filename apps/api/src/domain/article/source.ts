@@ -60,7 +60,6 @@ const fromUrl = (url: string): Source => {
 
 const SourceSchema = z.enum(SOURCES);
 
-const SourceVO = { fromUrl, schema: SourceSchema, values: SOURCES } as const;
+const Source = { fromUrl, schema: SourceSchema, values: SOURCES } as const;
 
-export { SourceVO };
-export type { Source };
+export { Source };

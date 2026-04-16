@@ -1,7 +1,7 @@
 import type { Highlight, HighlightRepository } from "../../domain/highlight/index.js";
-import { HighlightEntity, HighlightIdVO } from "../../domain/highlight/index.js";
+import { HighlightEntity, HighlightId } from "../../domain/highlight/index.js";
 import { err, ok } from "neverthrow";
-import { ArticleIdVO } from "../../domain/article/index.js";
+import { ArticleId } from "../../domain/article/index.js";
 import type { ArticleRepository } from "../../domain/article/index.js";
 import type { DomainError } from "../../domain/shared/index.js";
 import type { ResultAsync } from "neverthrow";
@@ -28,7 +28,7 @@ const createHighlight = (
   function executeCreateHighlight(
     input: CreateHighlightInput,
   ): ResultAsync<Highlight, DomainError> {
-    return ArticleIdVO.create(input.articleId)
+    return ArticleId.create(input.articleId)
       .asyncAndThen((articleId) =>
         deps.articleRepo.findById(articleId).andThen((article) => {
           if (!article) {
@@ -42,7 +42,7 @@ const createHighlight = (
             color: input.color,
             endOffset: input.endOffset,
             highlightedText: input.highlightedText,
-            id: HighlightIdVO.generate(),
+            id: HighlightId.generate(),
             note: input.note ?? null,
             prefixContext: input.prefixContext,
             startOffset: input.startOffset,
