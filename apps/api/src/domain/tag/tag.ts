@@ -1,13 +1,14 @@
+import type { TagId } from "./tag-id.js";
 import type { TagName } from "./tag-name.js";
 
 interface Tag {
-  readonly id: string;
+  readonly id: TagId;
   readonly name: TagName;
   readonly createdAt: Date;
 }
 
 interface CreateParams {
-  readonly id: string;
+  readonly id: TagId;
   readonly name: TagName;
 }
 

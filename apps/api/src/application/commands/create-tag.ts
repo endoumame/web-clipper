@@ -1,9 +1,8 @@
 import type { Tag, TagRepository } from "../../domain/tag/index.js";
-import { TagEntity, TagNameVO } from "../../domain/tag/index.js";
+import { TagEntity, TagIdVO, TagNameVO } from "../../domain/tag/index.js";
 import type { DomainError } from "../../domain/shared/index.js";
 import type { ResultAsync } from "neverthrow";
 import { err } from "neverthrow";
-import { nanoid } from "nanoid";
 
 interface CreateTagDeps {
   readonly tagRepo: TagRepository;
@@ -17,7 +16,7 @@ export const createTag =
         if (existing) {
           return err({ name, type: "TAG_ALREADY_EXISTS" as const });
         }
-        const tag = TagEntity.create({ id: nanoid(), name: validName });
+        const tag = TagEntity.create({ id: TagIdVO.generate(), name: validName });
         return deps.tagRepo.save(tag);
       }),
     );

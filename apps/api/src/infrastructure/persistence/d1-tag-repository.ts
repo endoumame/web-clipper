@@ -1,8 +1,8 @@
-import type { Tag, TagName, TagRepository } from "../../domain/tag/index.js";
+import type { Tag, TagId, TagName, TagRepository } from "../../domain/tag/index.js";
+import { TagIdVO, TagNameVO } from "../../domain/tag/index.js";
 import type { DomainError } from "../../domain/shared/index.js";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { ResultAsync } from "neverthrow";
-import { TagNameVO } from "../../domain/tag/index.js";
 import { eq } from "drizzle-orm";
 import { tags } from "./schema.js";
 
@@ -13,11 +13,11 @@ const toStorageError = (error: unknown): DomainError => ({
 
 const toDomain = (row: { id: string; name: string; createdAt: Date }): Tag => ({
   createdAt: row.createdAt,
-  id: row.id,
+  id: TagIdVO.schema.parse(row.id),
   name: TagNameVO.schema.parse(row.name),
 });
 
-const deleteTagById = (db: DrizzleD1Database, id: string): ResultAsync<void, DomainError> =>
+const deleteTagById = (db: DrizzleD1Database, id: TagId): ResultAsync<void, DomainError> =>
   ResultAsync.fromPromise(
     db
       .delete(tags)
@@ -64,9 +64,9 @@ const saveTag = (db: DrizzleD1Database, tag: Tag): ResultAsync<Tag, DomainError>
   );
 
 export const createD1TagRepository = (db: DrizzleD1Database): TagRepository => ({
-  deleteById: (id: string): ResultAsync<void, DomainError> => deleteTagById(db, id),
+  deleteById: (id: TagId): ResultAsync<void, DomainError> => deleteTagById(db, id),
 
-  findById: (id: string): ResultAsync<Tag | null, DomainError> =>
+  findById: (id: TagId): ResultAsync<Tag | null, DomainError> =>
     findTagByColumn(db, () => eq(tags.id, id)),
 
   findByName: (name: TagName): ResultAsync<Tag | null, DomainError> =>
