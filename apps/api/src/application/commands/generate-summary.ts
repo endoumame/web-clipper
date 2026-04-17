@@ -4,7 +4,7 @@ import type {
   ArticleSummarizer,
   ContentExtractor,
 } from "../../domain/article/index.js";
-import { ArticleEntity, ArticleIdVO } from "../../domain/article/index.js";
+import { ArticleEntity, ArticleId } from "../../domain/article/index.js";
 import { err, ok } from "neverthrow";
 import type { DomainError } from "../../domain/shared/index.js";
 import type { ResultAsync } from "neverthrow";
@@ -19,7 +19,7 @@ const generateSummary = (
   deps: GenerateSummaryDeps,
 ): ((id: string) => ResultAsync<Article, DomainError>) =>
   function executeGenerateSummary(id: string): ResultAsync<Article, DomainError> {
-    return ArticleIdVO.create(id)
+    return ArticleId.create(id)
       .asyncAndThen((articleId) => deps.articleRepo.findById(articleId))
       .andThen((article) => {
         if (article) {

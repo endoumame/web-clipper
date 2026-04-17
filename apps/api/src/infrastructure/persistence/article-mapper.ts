@@ -1,7 +1,7 @@
-import { ArticleEntity, ArticleIdVO, ArticleUrlVO, SourceVO } from "../../domain/article/index.js";
+import { ArticleEntity, ArticleId, ArticleUrl, Source } from "../../domain/article/index.js";
 import type { Article } from "../../domain/article/index.js";
 import type { InferSelectModel } from "drizzle-orm";
-import { TagNameVO } from "../../domain/tag/index.js";
+import { TagName } from "../../domain/tag/index.js";
 import type { articles } from "./schema.js";
 
 type ArticleRow = InferSelectModel<typeof articles>;
@@ -12,15 +12,15 @@ const articleToDomain = (row: ArticleRow, tagNames: string[]): Article =>
     content: row.content,
     createdAt: row.createdAt,
     description: row.description,
-    id: ArticleIdVO.schema.parse(row.id),
+    id: ArticleId.schema.parse(row.id),
     isRead: row.isRead,
     memo: row.memo,
     ogImageUrl: row.ogImageUrl,
-    source: SourceVO.schema.parse(row.source),
-    tags: tagNames.map((name) => TagNameVO.schema.parse(name)),
+    source: Source.schema.parse(row.source),
+    tags: tagNames.map((name) => TagName.schema.parse(name)),
     title: row.title,
     updatedAt: row.updatedAt,
-    url: ArticleUrlVO.schema.parse(row.url),
+    url: ArticleUrl.schema.parse(row.url),
   });
 
 const articleToPersistence = (

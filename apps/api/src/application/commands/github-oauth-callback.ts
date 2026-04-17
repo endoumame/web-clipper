@@ -1,5 +1,5 @@
 import type { Session, SessionRepository } from "../../domain/session/index.js";
-import { SessionEntity, SessionIdVO } from "../../domain/session/index.js";
+import { SessionEntity, SessionId } from "../../domain/session/index.js";
 import type { User, UserRepository } from "../../domain/user/index.js";
 import type { DomainError } from "../../domain/shared/index.js";
 import type { ResultAsync } from "neverthrow";
@@ -37,7 +37,7 @@ export const githubOAuthCallback =
     deps.userRepo.findByGithubId(input.githubId).andThen((existingUser) => {
       if (existingUser) {
         const session = SessionEntity.create({
-          id: SessionIdVO.generate(),
+          id: SessionId.generate(),
           userId: existingUser.id,
         });
         return deps.sessionRepo.save(session).map((sv) => ({ session: sv, user: existingUser }));
@@ -63,7 +63,7 @@ export const githubOAuthCallback =
         const linkedUser = UserEntity.linkGitHub(user, input.githubId);
         return deps.userRepo.save(linkedUser).andThen((savedUser) => {
           const session = SessionEntity.create({
-            id: SessionIdVO.generate(),
+            id: SessionId.generate(),
             userId: savedUser.id,
           });
           return deps.sessionRepo.save(session).map((sv) => ({ session: sv, user: savedUser }));

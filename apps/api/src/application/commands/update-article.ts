@@ -1,9 +1,9 @@
 import type { Article, ArticleRepository } from "../../domain/article/index.js";
-import { ArticleEntity, ArticleIdVO } from "../../domain/article/index.js";
+import { ArticleEntity, ArticleId } from "../../domain/article/index.js";
 import { err, ok } from "neverthrow";
 import type { DomainError } from "../../domain/shared/index.js";
 import type { ResultAsync } from "neverthrow";
-import { TagNameVO } from "../../domain/tag/index.js";
+import { TagName } from "../../domain/tag/index.js";
 
 interface UpdateArticleDeps {
   readonly articleRepo: ArticleRepository;
@@ -36,7 +36,7 @@ const applyReadUpdate = (article: Article, input: UpdateArticleInput): Article =
 export const updateArticle =
   (deps: UpdateArticleDeps) =>
   (input: UpdateArticleInput): ResultAsync<Article, DomainError> =>
-    ArticleIdVO.create(input.id)
+    ArticleId.create(input.id)
       .asyncAndThen((id) =>
         deps.articleRepo.findById(id).andThen((article) => {
           if (article) {
@@ -50,7 +50,7 @@ export const updateArticle =
         updated = applyReadUpdate(updated, input);
 
         if ("tags" in input && input.tags) {
-          const tagsResult = TagNameVO.validateMany(input.tags);
+          const tagsResult = TagName.validateMany(input.tags);
           if (tagsResult.isErr()) {
             return err(tagsResult.error);
           }

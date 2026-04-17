@@ -1,7 +1,6 @@
-import type { Highlight, HighlightId, HighlightRepository } from "../../domain/highlight/index.js";
-import { HighlightEntity, HighlightIdVO } from "../../domain/highlight/index.js";
-import type { ArticleId } from "../../domain/article/index.js";
-import { ArticleIdVO } from "../../domain/article/index.js";
+import type { Highlight, HighlightRepository } from "../../domain/highlight/index.js";
+import { HighlightEntity, HighlightId } from "../../domain/highlight/index.js";
+import { ArticleId } from "../../domain/article/index.js";
 import type { DomainError } from "../../domain/shared/index.js";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { ResultAsync } from "neverthrow";
@@ -15,12 +14,12 @@ const toStorageError = (error: unknown): DomainError => ({
 
 const toDomain = (row: typeof highlights.$inferSelect): Highlight =>
   HighlightEntity.reconstruct({
-    articleId: ArticleIdVO.schema.parse(row.articleId),
+    articleId: ArticleId.schema.parse(row.articleId),
     color: row.color,
     createdAt: row.createdAt,
     endOffset: row.endOffset,
     highlightedText: row.highlightedText,
-    id: HighlightIdVO.schema.parse(row.id),
+    id: HighlightId.schema.parse(row.id),
     note: row.note,
     prefixContext: row.prefixContext,
     startOffset: row.startOffset,

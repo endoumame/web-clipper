@@ -1,6 +1,6 @@
 import type { DomainError } from "../../domain/shared/index.js";
 import type { ResultAsync } from "neverthrow";
-import { TagIdVO } from "../../domain/tag/index.js";
+import { TagId } from "../../domain/tag/index.js";
 import type { TagRepository } from "../../domain/tag/index.js";
 import { err } from "neverthrow";
 
@@ -10,7 +10,7 @@ interface DeleteTagDeps {
 
 const deleteTag = (deps: DeleteTagDeps): ((id: string) => ResultAsync<void, DomainError>) => {
   const executeDeleteTag = (id: string): ResultAsync<void, DomainError> =>
-    TagIdVO.create(id).asyncAndThen((tagId) =>
+    TagId.create(id).asyncAndThen((tagId) =>
       deps.tagRepo.findById(tagId).andThen((existing) => {
         if (existing) {
           return deps.tagRepo.deleteById(tagId);

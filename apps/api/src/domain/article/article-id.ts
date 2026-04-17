@@ -1,12 +1,11 @@
-import { createBrandedIdVO } from "../shared/branded-id.js";
+import { createBrandedId } from "../shared/branded-id.js";
 import type { z } from "zod";
 
-const ArticleIdVO = createBrandedIdVO({
+const ArticleId = createBrandedId({
   brand: "ArticleId",
   invalidError: (message) => ({ message, type: "INVALID_ARTICLE_ID" }),
 });
 
-type ArticleId = z.infer<typeof ArticleIdVO.schema>;
+type ArticleId = z.infer<typeof ArticleId.schema>;
 
-export { ArticleIdVO };
-export type { ArticleId };
+export { ArticleId };

@@ -1,12 +1,11 @@
-import { createBrandedIdVO } from "../shared/branded-id.js";
+import { createBrandedId } from "../shared/branded-id.js";
 import type { z } from "zod";
 
-const HighlightIdVO = createBrandedIdVO({
+const HighlightId = createBrandedId({
   brand: "HighlightId",
   invalidError: (message) => ({ message, type: "INVALID_HIGHLIGHT_ID" }),
 });
 
-type HighlightId = z.infer<typeof HighlightIdVO.schema>;
+type HighlightId = z.infer<typeof HighlightId.schema>;
 
-export { HighlightIdVO };
-export type { HighlightId };
+export { HighlightId };

@@ -4,11 +4,11 @@ import type {
   ContentExtractor,
   MetadataFetcher,
 } from "../../domain/article/index.js";
-import { ArticleEntity, ArticleIdVO, ArticleUrlVO, SourceVO } from "../../domain/article/index.js";
+import { ArticleEntity, ArticleId, ArticleUrl, Source } from "../../domain/article/index.js";
 import { err, ok } from "neverthrow";
 import type { DomainError } from "../../domain/shared/index.js";
 import type { ResultAsync } from "neverthrow";
-import { TagNameVO } from "../../domain/tag/index.js";
+import { TagName } from "../../domain/tag/index.js";
 
 interface ClipArticleDeps {
   readonly articleRepo: ArticleRepository;
@@ -26,7 +26,7 @@ const clipArticle = (
   deps: ClipArticleDeps,
 ): ((input: ClipArticleInput) => ResultAsync<Article, DomainError>) =>
   function executeClipArticle(input: ClipArticleInput): ResultAsync<Article, DomainError> {
-    return ArticleUrlVO.create(input.url)
+    return ArticleUrl.create(input.url)
       .asyncAndThen((url) =>
         deps.articleRepo.findByUrl(url).andThen((existing) => {
           if (existing) {
@@ -43,7 +43,7 @@ const clipArticle = (
           .orElse(() => ok({ content: null as string | null, metadata, url })),
       )
       .andThen(({ url, metadata, content }) => {
-        const tagsResult = TagNameVO.validateMany(input.tags);
+        const tagsResult = TagName.validateMany(input.tags);
         if (tagsResult.isErr()) {
           return err(tagsResult.error);
         }
@@ -51,10 +51,10 @@ const clipArticle = (
         const article = ArticleEntity.create({
           content,
           description: metadata.description,
-          id: ArticleIdVO.generate(),
+          id: ArticleId.generate(),
           memo: input.memo ?? null,
           ogImageUrl: metadata.ogImageUrl,
-          source: SourceVO.fromUrl(input.url),
+          source: Source.fromUrl(input.url),
           tags: tagsResult.value,
           title: metadata.title,
           url,

@@ -23,7 +23,6 @@ const generate = (): SessionId => {
   return SessionIdSchema.parse(id);
 };
 
-const SessionIdVO = { create, generate, schema: SessionIdSchema } as const;
+const SessionId = { create, generate, schema: SessionIdSchema } as const;
 
-export { SessionIdVO };
-export type { SessionId };
+export { SessionId };

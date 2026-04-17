@@ -1,5 +1,5 @@
 import type { Highlight, HighlightRepository } from "../../domain/highlight/index.js";
-import { HighlightEntity, HighlightIdVO } from "../../domain/highlight/index.js";
+import { HighlightEntity, HighlightId } from "../../domain/highlight/index.js";
 import { err, ok } from "neverthrow";
 import type { DomainError } from "../../domain/shared/index.js";
 import type { ResultAsync } from "neverthrow";
@@ -20,7 +20,7 @@ const updateHighlight = (
   function executeUpdateHighlight(
     input: UpdateHighlightInput,
   ): ResultAsync<Highlight, DomainError> {
-    return HighlightIdVO.create(input.id)
+    return HighlightId.create(input.id)
       .asyncAndThen((id) =>
         deps.highlightRepo.findById(id).andThen((existing) => {
           if (!existing) {

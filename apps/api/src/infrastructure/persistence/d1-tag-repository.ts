@@ -1,5 +1,5 @@
-import type { Tag, TagId, TagName, TagRepository } from "../../domain/tag/index.js";
-import { TagIdVO, TagNameVO } from "../../domain/tag/index.js";
+import type { Tag, TagRepository } from "../../domain/tag/index.js";
+import { TagId, TagName } from "../../domain/tag/index.js";
 import type { DomainError } from "../../domain/shared/index.js";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { ResultAsync } from "neverthrow";
@@ -13,8 +13,8 @@ const toStorageError = (error: unknown): DomainError => ({
 
 const toDomain = (row: { id: string; name: string; createdAt: Date }): Tag => ({
   createdAt: row.createdAt,
-  id: TagIdVO.schema.parse(row.id),
-  name: TagNameVO.schema.parse(row.name),
+  id: TagId.schema.parse(row.id),
+  name: TagName.schema.parse(row.name),
 });
 
 const deleteTagById = (db: DrizzleD1Database, id: TagId): ResultAsync<void, DomainError> =>

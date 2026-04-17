@@ -1,7 +1,7 @@
 import type { PasswordHasher, User, UserRepository } from "../../domain/user/index.js";
 import type { Session, SessionRepository } from "../../domain/session/index.js";
-import { SessionEntity, SessionIdVO } from "../../domain/session/index.js";
-import { UserEntity, UserIdVO } from "../../domain/user/index.js";
+import { SessionEntity, SessionId } from "../../domain/session/index.js";
+import { UserEntity, UserId } from "../../domain/user/index.js";
 import { err, ok } from "neverthrow";
 import type { DomainError } from "../../domain/shared/index.js";
 import type { ResultAsync } from "neverthrow";
@@ -42,7 +42,7 @@ const setupUser = (
       .andThen(() => deps.passwordHasher.hash(input.password))
       .andThen(({ hash, salt }) => {
         const user = UserEntity.create({
-          id: UserIdVO.generate(),
+          id: UserId.generate(),
           passwordHash: hash,
           passwordSalt: salt,
           username: input.username,
@@ -51,7 +51,7 @@ const setupUser = (
       })
       .andThen((user) => {
         const session = SessionEntity.create({
-          id: SessionIdVO.generate(),
+          id: SessionId.generate(),
           userId: user.id,
         });
         return deps.sessionRepo

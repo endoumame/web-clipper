@@ -1,7 +1,7 @@
 import type { InferSelectModel } from "drizzle-orm";
 import type { Session } from "../../domain/session/index.js";
-import { SessionIdVO } from "../../domain/session/index.js";
-import { UserIdVO } from "../../domain/user/index.js";
+import { SessionId } from "../../domain/session/index.js";
+import { UserId } from "../../domain/user/index.js";
 import type { sessions } from "./schema.js";
 
 type SessionRow = InferSelectModel<typeof sessions>;
@@ -9,8 +9,8 @@ type SessionRow = InferSelectModel<typeof sessions>;
 const sessionToDomain = (row: SessionRow): Session => ({
   createdAt: row.createdAt,
   expiresAt: row.expiresAt,
-  id: SessionIdVO.schema.parse(row.id),
-  userId: UserIdVO.schema.parse(row.userId),
+  id: SessionId.schema.parse(row.id),
+  userId: UserId.schema.parse(row.userId),
 });
 
 const sessionToPersistence = (

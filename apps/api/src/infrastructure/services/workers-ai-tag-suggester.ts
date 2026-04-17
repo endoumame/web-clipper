@@ -1,7 +1,7 @@
-import type { TagName, TagSuggester, TagSuggestionInput } from "../../domain/tag/index.js";
+import type { TagSuggester, TagSuggestionInput } from "../../domain/tag/index.js";
 import type { DomainError } from "../../domain/shared/index.js";
 import { ResultAsync } from "neverthrow";
-import { TagNameVO } from "../../domain/tag/index.js";
+import { TagName } from "../../domain/tag/index.js";
 
 const SLICE_START = 0;
 const MAX_TEXT_LENGTH = 6000;
@@ -48,7 +48,7 @@ const validateTagItem = (item: unknown): TagName | null => {
   if (typeof item !== "string") {
     return null;
   }
-  const result = TagNameVO.create(item);
+  const result = TagName.create(item);
   return result.isOk() ? result.value : null;
 };
 

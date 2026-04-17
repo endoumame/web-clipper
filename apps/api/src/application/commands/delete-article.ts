@@ -1,5 +1,5 @@
 import { err, ok } from "neverthrow";
-import { ArticleIdVO } from "../../domain/article/index.js";
+import { ArticleId } from "../../domain/article/index.js";
 import type { ArticleRepository } from "../../domain/article/index.js";
 import type { DomainError } from "../../domain/shared/index.js";
 import type { ResultAsync } from "neverthrow";
@@ -8,7 +8,7 @@ const deleteArticle = (deps: {
   readonly articleRepo: ArticleRepository;
 }): ((id: string) => ResultAsync<void, DomainError>) => {
   const executeDeleteArticle = (id: string): ResultAsync<void, DomainError> =>
-    ArticleIdVO.create(id)
+    ArticleId.create(id)
       .asyncAndThen((articleId) =>
         deps.articleRepo.findById(articleId).andThen((article) => {
           if (article) {
