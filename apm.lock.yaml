@@ -1,0 +1,378 @@
+lockfile_version: "1"
+generated_at: "2026-05-25T15:10:54.504339+00:00"
+apm_version: 0.11.0
+dependencies:
+  - repo_url: berserkdisruptors/contextual-commits
+    host: github.com
+    resolved_commit: 12efb1d7a8e182270ab240f22f84bc44790ce300
+    virtual_path: skills/contextual-commit
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/contextual-commit
+      - .claude/skills/contextual-commit
+      - .github/skills/contextual-commit
+    content_hash: sha256:3ec7893fcabb2f1a3ab2e6cdf001354982aade9ed539047f44cb21858879eff0
+  - repo_url: berserkdisruptors/contextual-commits
+    host: github.com
+    resolved_commit: 12efb1d7a8e182270ab240f22f84bc44790ce300
+    virtual_path: skills/recall
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/recall
+      - .claude/skills/recall
+      - .github/skills/recall
+    content_hash: sha256:b12b1e8916baa48bf8374c6bc629f23acfb870d97e8a22ff629ef21face88317
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/aggregate-design
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/aggregate-design
+      - .claude/skills/aggregate-design
+      - .github/skills/aggregate-design
+    content_hash: sha256:9ecb38aa52691b78d1b85c4c1ce7de6087ecb193b8a4369fd9d3d2ae2945a344
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/aggregate-transaction-boundary
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/aggregate-transaction-boundary
+      - .claude/skills/aggregate-transaction-boundary
+      - .github/skills/aggregate-transaction-boundary
+    content_hash: sha256:cfa9da35bb1a00b010e5f4bec33de8aafc45cf3a50c62a1636d8a77431479e82
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/cqrs-aggregate-modeling
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/cqrs-aggregate-modeling
+      - .claude/skills/cqrs-aggregate-modeling
+      - .github/skills/cqrs-aggregate-modeling
+    content_hash: sha256:5bb7864ac0046dc4a916a24fa080efc2bce72f7da3c7b315eb1cbe7d1d17e4ae
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/cqrs-to-event-sourcing
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/cqrs-to-event-sourcing
+      - .claude/skills/cqrs-to-event-sourcing
+      - .github/skills/cqrs-to-event-sourcing
+    content_hash: sha256:af59bc93657c0ccec32d564b7c7a527682108bd2cbaa589aa89665d5185a4dc9
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/cqrs-tradeoffs
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/cqrs-tradeoffs
+      - .claude/skills/cqrs-tradeoffs
+      - .github/skills/cqrs-tradeoffs
+    content_hash: sha256:e646896bb505ee11299a04a9c9b9593c25e5eab9deefba8969389d8c425ace9d
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/cross-aggregate-constraints
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/cross-aggregate-constraints
+      - .claude/skills/cross-aggregate-constraints
+      - .github/skills/cross-aggregate-constraints
+    content_hash: sha256:7f9c3ed594785d5566df5472205958ef0e1f7d18b07cd507b48e3018a2f00fd9
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/ddd-module-pattern
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/ddd-module-pattern
+      - .claude/skills/ddd-module-pattern
+      - .github/skills/ddd-module-pattern
+    content_hash: sha256:0769991b033ca3d3214b424eea2aa449321e701276de211249919e62dc68db35
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/domain-building-blocks
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/domain-building-blocks
+      - .claude/skills/domain-building-blocks
+      - .github/skills/domain-building-blocks
+    content_hash: sha256:b80e4c9f07e697f21f702657a072b15a667b4c75d95220eb6c7ff8b12514ddef
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/domain-model-extractor
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/domain-model-extractor
+      - .claude/skills/domain-model-extractor
+      - .github/skills/domain-model-extractor
+    content_hash: sha256:2671a28d0ab4d8ab209559f28366bab6122a3a9c93e282d436669bb23dbb12d4
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/domain-model-first
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/domain-model-first
+      - .claude/skills/domain-model-first
+      - .github/skills/domain-model-first
+    content_hash: sha256:7766287cc67707f9aeabe5ca33487a9e8d28fca0991f723436a7b1abd682d6b9
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/domain-primitives-and-always-valid
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/domain-primitives-and-always-valid
+      - .claude/skills/domain-primitives-and-always-valid
+      - .github/skills/domain-primitives-and-always-valid
+    content_hash: sha256:55ee376d86beb014e79508d239032d0effed2dceff85b92dc720b15115ed2943
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/error-classification
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/error-classification
+      - .claude/skills/error-classification
+      - .github/skills/error-classification
+    content_hash: sha256:88ef374be5460211f9ba8b4e4b002b4922b806dd6b8dcda375d6eb675f53c539
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/error-handling
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/error-handling
+      - .claude/skills/error-handling
+      - .github/skills/error-handling
+    content_hash: sha256:9518d88b3a6c54ab79962a399b767d6a8a98eebbf573f1bd5c2975aad5cd4dab
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/first-class-collection
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/first-class-collection
+      - .claude/skills/first-class-collection
+      - .github/skills/first-class-collection
+    content_hash: sha256:15d9e9972c11c12ca2893a3daedb04bb93ccc7cd57e299eec00baca32ad6c007
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/intent-based-dedup
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/intent-based-dedup
+      - .claude/skills/intent-based-dedup
+      - .github/skills/intent-based-dedup
+    content_hash: sha256:12e6751e487f028ccfff5ff9cabfa85204f756f97dd6197333f7f7fb2392111b
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/law-of-demeter
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/law-of-demeter
+      - .claude/skills/law-of-demeter
+      - .github/skills/law-of-demeter
+    content_hash: sha256:07a6a5f35675015d90e75cebca5b7fb157a3a78cbf1f043339bcb35f7eb9a71a
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/package-design
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/package-design
+      - .claude/skills/package-design
+      - .github/skills/package-design
+    content_hash: sha256:355eb604a9ad054b9611c2f7d8f6134d48ecb88e055638ceb23f51614c7e6e43
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/parse-dont-validate
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/parse-dont-validate
+      - .claude/skills/parse-dont-validate
+      - .github/skills/parse-dont-validate
+    content_hash: sha256:2d9aca512700c16290388cc9fe2415aa9fbbc7265d2641070aff7fb15ca045d0
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/pekko-cqrs-es-implementation
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/pekko-cqrs-es-implementation
+      - .claude/skills/pekko-cqrs-es-implementation
+      - .github/skills/pekko-cqrs-es-implementation
+    content_hash: sha256:81f0d58d7069c952a1dfd61f13706c5e40718006ab047946e15c82a74922f51c
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/pr-green
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/pr-green
+      - .claude/skills/pr-green
+      - .github/skills/pr-green
+    content_hash: sha256:3bce7c52072ca14227db5b381f420d0c8a81e4636f653652081592e6f1e687ba
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/refactoring-packages
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/refactoring-packages
+      - .claude/skills/refactoring-packages
+      - .github/skills/refactoring-packages
+    content_hash: sha256:cef5dc0a47b5b92da00931e5cab38020405bd73fc4b473ac42a9da1086e3b3bb
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/repository-design
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/repository-design
+      - .claude/skills/repository-design
+      - .github/skills/repository-design
+    content_hash: sha256:8eff644d6162c3f2265177f05b122330434013b854099ef4bd148b41bf82228e
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/repository-placement
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/repository-placement
+      - .claude/skills/repository-placement
+      - .github/skills/repository-placement
+    content_hash: sha256:12d676922bc3264ac22baee9749d08c0af46cd483516336ebe576c600067bbf0
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/reviewing-skills
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/reviewing-skills
+      - .claude/skills/reviewing-skills
+      - .github/skills/reviewing-skills
+    content_hash: sha256:2467e8e41f3a2fabb4a89e943c18f952645e64a6ba536bbeb4afab52056cb8e7
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/tell-dont-ask
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/tell-dont-ask
+      - .claude/skills/tell-dont-ask
+      - .github/skills/tell-dont-ask
+    content_hash: sha256:24fe031ef10f2cf68e6b88d0da5a9b7dec67729e5d336c266b651c8267347730
+  - repo_url: j5ik2o/okite-ai
+    host: github.com
+    resolved_commit: f1bc1c37831cbe5ea6a9da5e8f828e639a143e32
+    virtual_path: skills/when-to-wrap-primitives
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/when-to-wrap-primitives
+      - .claude/skills/when-to-wrap-primitives
+      - .github/skills/when-to-wrap-primitives
+    content_hash: sha256:a9da0c8882a39b473d0a49c95295523b0ce723f9b3869fd9fefdf65ccf2e3f7d
+  - repo_url: mizchi/skills
+    host: github.com
+    resolved_commit: f74212c0e3c2e1cf420d27c6418af1a10f697f4b
+    virtual_path: apm-usage
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/apm-usage
+      - .claude/skills/apm-usage
+      - .github/skills/apm-usage
+    content_hash: sha256:5ca113f215eb4433e6420abbdfbcbbb05166ec9325c810e5cc27bc9acbf7a5d9
+  - repo_url: mizchi/skills
+    host: github.com
+    resolved_commit: f74212c0e3c2e1cf420d27c6418af1a10f697f4b
+    virtual_path: ast-grep-practice
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/ast-grep-practice
+      - .claude/skills/ast-grep-practice
+      - .github/skills/ast-grep-practice
+    content_hash: sha256:5b3281c9b87bf483168c78d788be0f820d21dae0054f32fbd16f3905ce436df5
+  - repo_url: mizchi/skills
+    host: github.com
+    resolved_commit: f74212c0e3c2e1cf420d27c6418af1a10f697f4b
+    virtual_path: empirical-prompt-tuning
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/empirical-prompt-tuning
+      - .claude/skills/empirical-prompt-tuning
+      - .github/skills/empirical-prompt-tuning
+    content_hash: sha256:0caa36857ba4e1f7193fa9ee3e22cac38d7e9787eda95e1726d4a39e40fb9479
+  - repo_url: mizchi/skills
+    host: github.com
+    resolved_commit: f74212c0e3c2e1cf420d27c6418af1a10f697f4b
+    virtual_path: extract-glossary
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/extract-glossary
+      - .claude/skills/extract-glossary
+      - .github/skills/extract-glossary
+    content_hash: sha256:2d18ea237841e73ed43e50c20b642367a7a99a93dd248cea97872b20e14b6a68
+  - repo_url: mizchi/skills
+    host: github.com
+    resolved_commit: f74212c0e3c2e1cf420d27c6418af1a10f697f4b
+    virtual_path: skill-finder
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/skill-finder
+      - .claude/skills/skill-finder
+      - .github/skills/skill-finder
+    content_hash: sha256:113a25f51814b68e5d86a377499fc5ca259925b020304ac9a1ba4544a4fd1cc6
+  - repo_url: mizchi/skills
+    host: github.com
+    resolved_commit: f74212c0e3c2e1cf420d27c6418af1a10f697f4b
+    virtual_path: skill-selector
+    is_virtual: true
+    package_type: claude_skill
+    deployed_files:
+      - .agents/skills/skill-selector
+      - .claude/skills/skill-selector
+      - .github/skills/skill-selector
+    content_hash: sha256:fb43818e9a36f2348b55a5163f3b73b4090a170cd51824c96361ecdb9c5785b7

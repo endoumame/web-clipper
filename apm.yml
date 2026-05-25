@@ -1,0 +1,41 @@
+name: web-clipper
+version: 1.0.0
+targets:
+  - claude
+  - codex
+dependencies:
+  apm:
+    - mizchi/skills/apm-usage
+    - mizchi/skills/skill-selector
+    - mizchi/skills/skill-finder
+    - mizchi/skills/empirical-prompt-tuning
+    - mizchi/skills/extract-glossary
+    - mizchi/skills/ast-grep-practice
+    - berserkdisruptors/contextual-commits/skills/contextual-commit
+    - berserkdisruptors/contextual-commits/skills/recall
+    - j5ik2o/okite-ai/skills/aggregate-design
+    - j5ik2o/okite-ai/skills/aggregate-transaction-boundary
+    - j5ik2o/okite-ai/skills/cqrs-aggregate-modeling
+    - j5ik2o/okite-ai/skills/cqrs-to-event-sourcing
+    - j5ik2o/okite-ai/skills/cqrs-tradeoffs
+    - j5ik2o/okite-ai/skills/cross-aggregate-constraints
+    - j5ik2o/okite-ai/skills/ddd-module-pattern
+    - j5ik2o/okite-ai/skills/domain-building-blocks
+    - j5ik2o/okite-ai/skills/domain-model-extractor
+    - j5ik2o/okite-ai/skills/domain-model-first
+    - j5ik2o/okite-ai/skills/domain-primitives-and-always-valid
+    - j5ik2o/okite-ai/skills/error-classification
+    - j5ik2o/okite-ai/skills/error-handling
+    - j5ik2o/okite-ai/skills/first-class-collection
+    - j5ik2o/okite-ai/skills/intent-based-dedup
+    - j5ik2o/okite-ai/skills/law-of-demeter
+    - j5ik2o/okite-ai/skills/package-design
+    - j5ik2o/okite-ai/skills/parse-dont-validate
+    - j5ik2o/okite-ai/skills/pekko-cqrs-es-implementation
+    - j5ik2o/okite-ai/skills/pr-green
+    - j5ik2o/okite-ai/skills/refactoring-packages
+    - j5ik2o/okite-ai/skills/repository-design
+    - j5ik2o/okite-ai/skills/repository-placement
+    - j5ik2o/okite-ai/skills/reviewing-skills
+    - j5ik2o/okite-ai/skills/tell-dont-ask
+    - j5ik2o/okite-ai/skills/when-to-wrap-primitives

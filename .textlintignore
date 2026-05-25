@@ -1,5 +1,8 @@
 node_modules/**
+apm_modules/**
 **/dist/**
+.agents/skills/**
 .claude/**
+.github/skills/**
 AGENTS.md
 CLAUDE.md

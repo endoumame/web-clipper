@@ -1,5 +1,9 @@
 node_modules
+apm_modules
 dist
 drizzle
 pnpm-lock.yaml
 *.tsbuildinfo
+.agents/skills
+.claude/skills
+.github/skills

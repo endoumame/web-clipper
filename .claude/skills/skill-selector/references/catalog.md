@@ -1,0 +1,230 @@
+# Curated skill catalog (Phase 1)
+
+Reference list for `skill-selector` Phase 1. Skills here have been vetted by mizchi for fit and quality. Group by project signal so the matching step is mechanical: detect the signal, propose the matching rows.
+
+If a skill belongs to multiple axes, list it under its primary one.
+
+Install strings are written for global scope (`apm install -g <string>`). For project scope, drop the `-g` and add the same string under `dependencies.apm` in `apm.yml`.
+
+The "Install" column may also be:
+
+- `(out-of-band)` — not installable via public APM (chezmoi-local, internal-only, gated). Mention in prose when relevant; do NOT add to `apm.yml`.
+- A row whose description names a specific platform (CI provider, runtime, cloud). When the project's platform differs, the core capability may still apply — read the underlying `SKILL.md` before deciding whether to adopt.
+- A subpath that diverges from the `<owner>/<repo>/skills/<name>` convention (e.g., `moonbitlang/moonbit-agent-guide/moonbit-c-binding`). This reflects an upstream layout that does not put skills under `skills/`. Run `apm view <owner>/<repo>` (or open the upstream README) once before committing to confirm the subpath is correct.
+
+---
+
+## Languages / runtimes
+
+### Node.js / TypeScript
+**Signals**: `package.json`, `pnpm-lock.yaml`, `tsconfig.json`, `node_modules/`
+
+| Skill | Install | Use when |
+|---|---|---|
+| node-sqlite-vec | `mizchi/skills/node-sqlite-vec` | Project uses Node 24+ `node:sqlite` with `sqlite-vec` extension for vectors / RAG |
+| pi-coding-agent | `mizchi/skills/pi-coding-agent` | Embedding `@mariozechner/pi-coding-agent` as a coding-agent runtime in Node scripts |
+| dotenvx | `mizchi/skills/dotenvx` | Repo uses or considers `dotenvx` for env-var encryption / multi-env |
+| esbuild-otel-instrumentation | `mizchi/skills/esbuild-otel-instrumentation` | esbuild ESM bundle silently drops `@opentelemetry/instrumentation-*` auto-instrumentation; no spans sent |
+
+### MoonBit
+**Signals**: `moon.mod.json`, `moon.pkg.json`, `_build/`, `.mooncakes/`
+
+| Skill | Install | Use when |
+|---|---|---|
+| moonbit-practice | `mizchi/skills/moonbit-practice` | Writing or reviewing MoonBit code (general best practices) |
+| moonbit-js-binding | `mizchi/skills/moonbit-js-binding` | MoonBit project needs JS FFI (`extern "js"`) for browser / Node / npm packages |
+| moonbit-agent-guide | `moonbitlang/moonbit-agent-guide/moonbit-agent-guide` | First-time MoonBit project setup — moon tooling, layout conventions |
+| moonbit-refactoring | `moonbitlang/moonbit-agent-guide/moonbit-refactoring` | Refactoring an existing MoonBit package idiomatically |
+| moonbit-c-binding | `moonbitlang/moonbit-agent-guide/moonbit-c-binding` | MoonBit project links a C library via native FFI |
+| tuimbt-practice | `mizchi/tui.mbt/skills/tuimbt-practice` | Building terminal UI in MoonBit using `tui.mbt` |
+| mooncheat | `mizchi/js.mbt/.claude/skills/mooncheat` | MoonBit cheatsheet for syntax / corelibrary lookups while writing `.mbt` |
+| moon-component | `mizchi/moon-component/skill` | Using the `moon-component` CLI for MoonBit WIT / WebAssembly Component workflow |
+| vibe-scratch-workflow | `mizchi/vibe-lang` | `vibe-lang` scratch-db workflow — `vibe new` → `vibe shell-stdin --restore` → `finalize` / `normalize` / `apply` (repo-root SKILL.md; verify with `apm view`) |
+
+### Gleam
+**Signals**: `gleam.toml`, `manifest.toml`, `.gleam_version`
+
+| Skill | Install | Use when |
+|---|---|---|
+| gleam-practice | `mizchi/skills/gleam-practice` | Building or reviewing Gleam projects on the Erlang target (Wisp + Mist, OTP) |
+
+---
+
+## Tooling / Infra
+
+### Build / task running
+**Signals**: `justfile`, `devbox.json`, `flake.nix`, `Taskfile.yml`
+
+| Skill | Install | Use when |
+|---|---|---|
+| justfile | `mizchi/skills/justfile` | Project uses or considers `just` as task runner |
+| nix-setup | `mizchi/skills/nix-setup` | Reproducible dev environment via devbox (Nix-backed, default) or pure Nix flakes (cutting-edge customization). Includes per-language flake templates and a devbox.json template |
+
+### Static analysis / lint
+**Signals**: `sgconfig.yml`, ad-hoc lint requirements that ESLint/biome can't express
+
+| Skill | Install | Use when |
+|---|---|---|
+| ast-grep-practice | `mizchi/skills/ast-grep-practice` | Operating ast-grep as a project lint tool (rules, fix, CI) |
+| ast-grep | `ast-grep/agent-skill/ast-grep` | Writing ast-grep rules / structural search (general guide) |
+| check-similarity | `mizchi/similarity/.claude/skills/check-similarity` | Detect duplicate code via AST-based similarity; auto-selects per-language tool |
+| check-similarity-mbt | `mizchi/similarity/.claude/skills/check-similarity-mbt` | Same, MoonBit (`.mbt`) only |
+| check-similarity-py | `mizchi/similarity/.claude/skills/check-similarity-py` | Same, Python (`.py`) only |
+| check-similarity-rs | `mizchi/similarity/.claude/skills/check-similarity-rs` | Same, Rust (`.rs`) only |
+| check-similarity-ts | `mizchi/similarity/.claude/skills/check-similarity-ts` | Same, TypeScript / JavaScript only |
+
+### CI / GitHub Actions
+**Signals**: `.github/workflows/`, failing PR checks
+
+| Skill | Install | Use when |
+|---|---|---|
+| gh-fix-ci | `mizchi/skills/gh-fix-ci` | Debugging or fixing failing GitHub Actions PR checks via `gh` |
+
+### Local CI runner
+**Signals**: `actrun.toml`, running GitHub Actions workflows locally
+
+| Skill | Install | Use when |
+|---|---|---|
+| actrun | `mizchi/actrun/.claude/skills/actrun` | Reference for the `actrun` CLI — local GitHub Actions runner; workflow proposal / parsing / execution support |
+| actrun-init | `mizchi/actrun/.claude/skills/actrun-init` | Introducing actrun to a project — install, `actrun.toml`, workflow adjustments |
+| actrun-debug | `mizchi/actrun/.claude/skills/actrun-debug` | Diagnosing actrun execution failures — log analysis, root-cause, fix suggestions |
+
+### Cloud deployment
+**Signals**: `wrangler.toml`, Cloudflare-related configs, ECS task / Fargate, AWS account access
+
+| Skill | Install | Use when |
+|---|---|---|
+| cloudflare-deploy | `mizchi/skills/cloudflare-deploy` | Deploying to Cloudflare Workers / Pages |
+| aws-ecs-service-connect-ipv6 | `mizchi/skills/aws-ecs-service-connect-ipv6` | ECS Service Connect alias resolves to IPv6 in IPv4-only Fargate task; `network is unreachable` |
+| aws-vault-mfa-iam | `mizchi/skills/aws-vault-mfa-iam` | aws-vault session blocked by IAM MFA-required policy; `iam:*` rejected with `InvalidClientTokenId` |
+
+### Release / changelog
+**Signals**: `CHANGELOG.md`, release-please config, `.changeset/`, version-tag-driven release
+
+| Skill | Install | Use when |
+|---|---|---|
+| conventional-changelog | `mizchi/skills/conventional-changelog` | Setting up or unifying a release flow with Conventional Commits + auto changelog |
+| upstream-fix-and-pin | `mizchi/skills/upstream-fix-and-pin` | A dependency has a bug or missing feature; you need to pin a fork while waiting for upstream merge |
+| npm-release | `(out-of-band)` | Setting up npm publishing via release-please + OIDC. chezmoi-local; ask mizchi |
+
+---
+
+## Testing / Browser
+
+**Signals**: `playwright.config.*`, `e2e/`, image-diff requirements
+
+| Skill | Install | Use when |
+|---|---|---|
+| playwright-test | `mizchi/skills/playwright-test` | **Primary** for any Playwright project. Writing / reviewing E2E tests — no fixed waits, network triggers |
+| playwright-cli | `mizchi/skills/playwright-cli` | **Secondary** — add only when CI sharding, codegen, or one-off `screenshot/pdf` matters. Skip when test authoring is the only concern |
+| review-image | `mizchi/skills/review-image` | Reviewing screenshots / generated images via OpenRouter vision models, VRT prechecks |
+| vrt | `mizchi/vrt` | Visual Regression Testing + a11y semantic verification CLI (`vrt-test`, `vrt`, `vrt-update`, `vrt compare`, `vrt snapshot`, fix-loop, VLM model selection). Repo-root SKILL.md; verify with `apm view` |
+
+### Frontend review (suite)
+**Signals**: a frontend project where someone wants a structured review pass (CI / hygiene / testing / security / weekly cadence)
+
+| Skill | Install | Use when |
+|---|---|---|
+| frontend-review-weekly | `mizchi/frontend-review/skills/frontend-review-weekly` | **Orchestrator** for the weekly AI review — dispatches triage / ci / hygiene / testing / security and the 5 perspective sub-skills |
+| frontend-review-triage | `mizchi/frontend-review/skills/frontend-review-triage` | Initial frontend-review assessment ("triage", day-1) |
+| frontend-review-ci | `mizchi/frontend-review/skills/frontend-review-ci` | CI is slow (>10 min), flaky, or you want to optimize GitHub Actions for a frontend project |
+| frontend-review-hygiene | `mizchi/frontend-review/skills/frontend-review-hygiene` | Code-hygiene audit — dependency freshness, TypeScript strictness, lint, dead code, duplication |
+| frontend-review-security | `mizchi/frontend-review/skills/frontend-review-security` | Frontend security review — `pnpm audit`, risky-pattern detection, AI self-pentest |
+| frontend-review-testing | `mizchi/frontend-review/skills/frontend-review-testing` | Test-infrastructure audit — vitest coverage, playwright config, VRT setup, coverage merging |
+| frontend-expert | `mizchi/frontend-review/skills/frontend-review-perspectives/frontend-expert` | Frontend-architect perspective sub-skill (component design, state, DOM usage) |
+| frontend-ops-expert | `mizchi/frontend-review/skills/frontend-review-perspectives/frontend-ops-expert` | Frontend-Ops perspective sub-skill (CI/CD, scheduler, KPI ratchet, release process) |
+| performance-expert | `mizchi/frontend-review/skills/frontend-review-perspectives/performance-expert` | Performance perspective sub-skill (bundle size, LCP / CLS / INP, avoidable work) |
+| react-expert | `mizchi/frontend-review/skills/frontend-review-perspectives/react-expert` | React-specialist perspective sub-skill (hooks, re-rendering, Suspense / RSC) |
+| security-expert | `mizchi/frontend-review/skills/frontend-review-perspectives/security-expert` | Security-specialist perspective sub-skill (XSS / CSRF, authz boundaries, input validation) |
+
+---
+
+## Reliability / Flakiness
+
+| Skill | Install | Use when |
+|---|---|---|
+| flaker-setup | `mizchi/flaker/skills/flaker-setup` | Introducing `@mizchi/flaker` to a repo for flaky-test detection / GitHub Actions integration |
+| flaker-management | `mizchi/flaker/skills/flaker-management` | Operating `@mizchi/flaker` after setup — day-to-day runs, sampling / quarantine review, KPI ratchet |
+| flaker-storage-cache-on-ci | `mizchi/skills/flaker-storage-cache-on-ci` | Persisting flaker's DuckDB storage across GitHub Actions runs via `actions/cache@v4`; debugging "history vanished every run"; adding a new ingest source |
+
+---
+
+## Process / Meta
+
+### Skill / prompt authoring
+
+| Skill | Install | Use when |
+|---|---|---|
+| apm-usage | `mizchi/skills/apm-usage` | Adding / removing / updating skills via APM (always pair with `skill-selector`) |
+| skill-finder | `mizchi/skills/skill-finder` | Cross-source survey + waxa eval gate when the catalog has no fit (Phase 2 of the selection flow) |
+| waxa-eval | `mizchi/skills/waxa-eval` | Iterating on a skill's prompt with the waxa CLI — scenarios, graders, ledger, convergence |
+| optimizing-descriptions | `mizchi/skills/optimizing-descriptions` | Audit + rewrite SKILL.md `description` fields per agentskills.io framework + mizchi's two-track (Meta / Project) trigger policy |
+| empirical-prompt-tuning | `mizchi/skills/empirical-prompt-tuning` | Iteratively improving an agent-facing instruction via subagent execution |
+| retrospective-codify | `mizchi/skills/retrospective-codify` | Converting trial-and-error lessons into ast-grep rules / skills / CLAUDE.md rules |
+| extract-glossary | `mizchi/skills/extract-glossary` | Extracting domain-specific terms / repo implementation maps / onboarding Mermaid diagrams from one or more repos / GitHub orgs |
+
+### Personal / dotfiles
+
+| Skill | Install | Use when |
+|---|---|---|
+| chezmoi-management | `mizchi/skills/chezmoi-management` | Touching mizchi's chezmoi-managed dotfiles (`~/.claude/`, `~/.config/`, `~/.zshrc`) |
+
+### Writing / publishing
+
+| Skill | Install | Use when |
+|---|---|---|
+| mizchi-blog-style | `mizchi/skills/mizchi-blog-style` | Drafting a blog post to be published as mizchi (zenn / dev.to). Style + AI-smell detection |
+| tech-article-reproducibility | `mizchi/skills/tech-article-reproducibility` | Final reproducibility check on a tech article draft before publication |
+
+### Migration / porting
+
+| Skill | Install | Use when |
+|---|---|---|
+| translate-programming-language | `mizchi/skills/translate-programming-language` | Porting modules / services / APIs between programming languages with behavior parity |
+
+### Memory / session (mnemo)
+**Signals**: agent needs persistent cross-session memory or session journaling; `mnemo` CLI on PATH
+
+| Skill | Install | Use when |
+|---|---|---|
+| mnemo-cmd | `mizchi/mnemo/skills/tools/mnemo-cmd` | Using the `mnemo` command entrypoint to inspect and mutate mnemo memory / sessions / skills / prompts |
+| mnemo-memory | `mizchi/mnemo/skills/memory/mnemo-memory` | `mnemo` as persistent agent memory — read context, record durable facts, update stale notes |
+| mnemo-session-journal | `mizchi/mnemo/skills/session/mnemo-session-journal` | `mnemo` for creating / appending / inspecting / resolving / searching session records |
+| mnemo-skill-select | `mizchi/mnemo/skills/tools/mnemo-skill-select` | Selecting agent skills from hosted mnemo (list / search uploaded skills, then load matching local) |
+
+### Security review (suite)
+**Signals**: user asks for a security review of a web application repository
+
+| Skill | Install | Use when |
+|---|---|---|
+| security-review | `mizchi/security-review/skills/security-review` | **Orchestrator** — runs the three sub-skills in order |
+| security-review-whitebox | `mizchi/security-review/skills/security-review-whitebox` | Static + source-code review with language-appropriate scanners |
+| security-review-blackbox | `mizchi/security-review/skills/security-review-blackbox` | OWASP ZAP baseline + optional authenticated active scan against a localhost target |
+| security-review-exploit | `mizchi/security-review/skills/security-review-exploit` | Confirming whitebox hypotheses via live HTTP probes or PoC |
+
+---
+
+## Deliberately not in catalog
+
+Some axes have no catalog row by design. Do **not** escalate to Phase 2 for these — they are one-off setup tasks, not recurring skill-shaped needs. Solve inline with framework docs.
+
+| Axis | Reason no skill |
+|---|---|
+| Vite / React / Next.js / Solid frontend scaffolding | One-off setup; framework docs are sufficient. Recurring patterns (E2E, build, CI) are covered by other catalog rows. |
+| Single-shot config conversions (e.g., webpack → Vite, Jest → Vitest) | One-off migration; AI-aided porting handles this inline. |
+| Ad-hoc data migrations / one-time backfills | One-off; doesn't recur. |
+| ORMs / DB clients in general | Too project-specific; only listed when a concrete operational pain has been encoded (e.g., `node-sqlite-vec`). |
+
+If you find yourself wanting a skill on one of these axes, that's a Phase 2 escalation candidate — but verify the need is recurring across multiple sessions before searching.
+
+## When the catalog has no fit
+
+If no row matches and the need is recurring, escalate via the `skill-finder` skill. It codifies the source priority (Anthropic official → claude-skill-registry → VoltAgent/awesome-agent-skills → ComposioHQ → obra/superpowers → GitHub topic) and gates adoption through a mandatory waxa eval. Do not run a GitHub topic search inline.
+
+## Catalog hygiene
+
+- A row here means: someone has actually used this skill on a real project and it pulled its weight.
+- When a new skill enters `mizchi/skills` (or an upstream repo this catalog references), add a row only after the first real use in a project.
+- When a skill is removed or deprecated, drop the row in the same edit.
+- Skills sourced through `skill-finder` are promoted here only after a passing waxa eval AND use in 2+ projects.
+- If you find yourself frequently citing a Phase-2 result, that's the trigger to promote it: open a PR adding it to this file with the project signal that triggered the match.

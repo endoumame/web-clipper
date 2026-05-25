@@ -11,3 +11,7 @@ dist
 .dev.vars
 
 .DS_Store
+
+
+# APM dependencies
+apm_modules/
