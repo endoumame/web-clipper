@@ -2,6 +2,7 @@ import {
   AuthStatusResponseSchema,
   ErrorResponseSchema,
   LoginInputSchema,
+  LoginResponseSchema,
   SetupInputSchema,
   SetupStatusResponseSchema,
 } from "@web-clipper/shared";
@@ -38,7 +39,7 @@ const setupRoute = createRoute({
   responses: {
     200: {
       content: {
-        "application/json": { schema: AuthStatusResponseSchema.openapi("SetupResponse") },
+        "application/json": { schema: LoginResponseSchema.openapi("SetupResponse") },
       },
       description: "Setup completed",
     },
@@ -65,7 +66,7 @@ const loginRoute = createRoute({
   responses: {
     200: {
       content: {
-        "application/json": { schema: AuthStatusResponseSchema.openapi("LoginResponse") },
+        "application/json": { schema: LoginResponseSchema.openapi("LoginResponse") },
       },
       description: "Login successful",
     },

@@ -15,4 +15,6 @@ const createExpiredSessionCookie = (): string =>
     "; ",
   );
 
+// Re-export getCookie so auth.ts can access it without adding another direct dependency
+export { getCookie } from "hono/cookie";
 export { createExpiredSessionCookie, createSessionCookie, SESSION_COOKIE_NAME };

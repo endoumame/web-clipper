@@ -8,6 +8,8 @@
     "build": "pnpm -r build",
     "build:api": "pnpm --filter @web-clipper/api build",
     "build:web": "pnpm --filter @web-clipper/web build",
+    "build:extension": "pnpm --filter @web-clipper/extension build",
+    "dev:extension": "pnpm --filter @web-clipper/extension build:watch",
     "test": "pnpm -r test",
     "test:api": "pnpm --filter @web-clipper/api test",
     "test:web": "pnpm --filter @web-clipper/web test",
